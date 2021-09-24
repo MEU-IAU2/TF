@@ -215,11 +215,23 @@ pre code {
 
 
 <!-- rnb-text-begin -->
-<p>prueba prueba 2</p>
-<p>Prueba 3</p>
+<p>PROPUESTA: DESAGREGAR LA VARIACIÓN DE PRECIOS DE LAS PROPIEDADES INMOBILIARIAS DURANTE LA PANDEMIA EN UNA UNIDAD DE ANÁLISIS VIRTUAL (MALLA EXAGONAL)</p>
+<p>Construir una malla hexagonal que refleje: 1- promedio m2 en venta 01/03/2020 - 31/03/2020 2- promedio m2 en venta 01/03/2021 - 31/03/2021</p>
+<p>Analizar la variación de precios. ¿Existe algún patrón espacial claro?</p>
+<p>Incorporar alguna otra variable que pueda llegar a explicarlo, como: - distancia al centro - espacios verdes - densidad poblacional</p>
+<p>¿Hay algún tipo de correlación? Estimar</p>
+<p>Pasos principales para esta parte:</p>
+<ol style="list-style-type: upper-alpha">
+<li>importar, explorar y limpiar los datos de propiedades inmobiliarias. Eliminar outliers (ver formula). Gráficos de barra y mapita por barrio que luego vamos a desagregar en hexágonos. ¿algo llamativo?</li>
+</ol>
+<p>REPETIR PARA MARZO 2021 (ideal: crear una función que automatice alguno de los pasos)</p>
+<ol start="2" style="list-style-type: upper-alpha">
+<li><p>construir la malla de hexágonos, con ID por polígono. Definir tamaño. St_join() para vincular las propieadades a los hexágonos. OJO: ¿qué pasa con los hexágonos que tienen 1 sola propiedad? hay que checkear que sea un valor representativo porque sino sesgaría fuerte OJO2: hexágonos que en alguno de los 2 períodos no registren valores, se van a temrinar eliminando de la comparación final</p></li>
+<li><p>analizar cómo varió cada uno de los hexágonos. Calcular el % de variación y hacer mapita. incoporar alguna otra variable y ver si hay correlación con eso.</p></li>
+</ol>
 <!-- rnb-text-end -->
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpwcnVlYmENCnBydWViYSAyDQoNClBydWViYSAz</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpQUk9QVUVTVEE6DQpERVNBR1JFR0FSIExBIFZBUklBQ0nDk04gREUgUFJFQ0lPUyBERSBMQVMgUFJPUElFREFERVMgSU5NT0JJTElBUklBUyBEVVJBTlRFIExBIFBBTkRFTUlBIEVOIFVOQSBVTklEQUQgREUgQU7DgUxJU0lTIFZJUlRVQUwgKE1BTExBIEVYQUdPTkFMKQ0KDQpDb25zdHJ1aXIgdW5hIG1hbGxhIGhleGFnb25hbCBxdWUgcmVmbGVqZTogDQogICAgMS0gcHJvbWVkaW8gbTIgZW4gdmVudGEgMDEvMDMvMjAyMCAtIDMxLzAzLzIwMjANCiAgICAyLSBwcm9tZWRpbyBtMiBlbiB2ZW50YSAwMS8wMy8yMDIxIC0gMzEvMDMvMjAyMQ0KICANCiAgQW5hbGl6YXIgbGEgdmFyaWFjacOzbiBkZSBwcmVjaW9zLg0KICDCv0V4aXN0ZSBhbGfDum4gcGF0csOzbiBlc3BhY2lhbCBjbGFybz8gDQoNCg0KSW5jb3Jwb3JhciBhbGd1bmEgb3RyYSB2YXJpYWJsZSBxdWUgcHVlZGEgbGxlZ2FyIGEgZXhwbGljYXJsbywgY29tbzogDQogICAgLSBkaXN0YW5jaWEgYWwgY2VudHJvDQogICAgLSBlc3BhY2lvcyB2ZXJkZXMNCiAgICAtIGRlbnNpZGFkIHBvYmxhY2lvbmFsDQogICAgDQrCv0hheSBhbGfDum4gdGlwbyBkZSBjb3JyZWxhY2nDs24/IEVzdGltYXIgDQoNCg0KDQpQYXNvcyBwcmluY2lwYWxlcyBwYXJhIGVzdGEgcGFydGU6DQoNCkEpIGltcG9ydGFyLCBleHBsb3JhciB5IGxpbXBpYXIgbG9zIGRhdG9zIGRlIHByb3BpZWRhZGVzIGlubW9iaWxpYXJpYXMuIEVsaW1pbmFyIG91dGxpZXJzICh2ZXIgZm9ybXVsYSkuDQpHcsOhZmljb3MgZGUgYmFycmEgeSBtYXBpdGEgcG9yIGJhcnJpbyBxdWUgbHVlZ28gdmFtb3MgYSBkZXNhZ3JlZ2FyIGVuIGhleMOhZ29ub3MuIMK/YWxnbyBsbGFtYXRpdm8/DQoNClJFUEVUSVIgUEFSQSBNQVJaTyAyMDIxIChpZGVhbDogY3JlYXIgdW5hIGZ1bmNpw7NuIHF1ZSBhdXRvbWF0aWNlIGFsZ3VubyBkZSBsb3MgcGFzb3MpDQoNCg0KQikgY29uc3RydWlyIGxhIG1hbGxhIGRlIGhleMOhZ29ub3MsIGNvbiBJRCBwb3IgcG9sw61nb25vLiBEZWZpbmlyIHRhbWHDsW8uIA0KICBTdF9qb2luKCkgcGFyYSB2aW5jdWxhciBsYXMgcHJvcGllYWRhZGVzIGEgbG9zIGhleMOhZ29ub3MuIA0KICBPSk86IMK/cXXDqSBwYXNhIGNvbiBsb3MgaGV4w6Fnb25vcyBxdWUgdGllbmVuIDEgc29sYSBwcm9waWVkYWQ/IGhheSBxdWUgY2hlY2tlYXIgcXVlIHNlYSB1biB2YWxvciByZXByZXNlbnRhdGl2byAgICAgcG9ycXVlIHNpbm8gc2VzZ2Fyw61hIGZ1ZXJ0ZQ0KICBPSk8yOiBoZXjDoWdvbm9zIHF1ZSBlbiBhbGd1bm8gZGUgbG9zIDIgcGVyw61vZG9zIG5vIHJlZ2lzdHJlbiB2YWxvcmVzLCBzZSB2YW4gYSB0ZW1yaW5hciBlbGltaW5hbmRvIGRlIGxhICAgICAgICAgICBjb21wYXJhY2nDs24gZmluYWwNCg0KDQpDKSBhbmFsaXphciBjw7NtbyB2YXJpw7MgY2FkYSB1bm8gZGUgbG9zIGhleMOhZ29ub3MuIENhbGN1bGFyIGVsICUgZGUgdmFyaWFjacOzbiB5IGhhY2VyIG1hcGl0YS4NCiAgaW5jb3BvcmFyIGFsZ3VuYSBvdHJhIHZhcmlhYmxlIHkgdmVyIHNpIGhheSBjb3JyZWxhY2nDs24gY29uIGVzby4gDQogIA0KICANCiAgDQoNCg0KDQoNCg==</div>
 
 
 

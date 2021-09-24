@@ -3,7 +3,46 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-prueba
-prueba 2
+PROPUESTA:
+DESAGREGAR LA VARIACIÓN DE PRECIOS DE LAS PROPIEDADES INMOBILIARIAS DURANTE LA PANDEMIA EN UNA UNIDAD DE ANÁLISIS VIRTUAL (MALLA EXAGONAL)
 
-Prueba 3
+Construir una malla hexagonal que refleje: 
+    1- promedio m2 en venta 01/03/2020 - 31/03/2020
+    2- promedio m2 en venta 01/03/2021 - 31/03/2021
+  
+  Analizar la variación de precios.
+  ¿Existe algún patrón espacial claro? 
+
+
+Incorporar alguna otra variable que pueda llegar a explicarlo, como: 
+    - distancia al centro
+    - espacios verdes
+    - densidad poblacional
+    
+¿Hay algún tipo de correlación? Estimar 
+
+
+
+Pasos principales para esta parte:
+
+A) importar, explorar y limpiar los datos de propiedades inmobiliarias. Eliminar outliers (ver formula).
+Gráficos de barra y mapita por barrio que luego vamos a desagregar en hexágonos. ¿algo llamativo?
+
+REPETIR PARA MARZO 2021 (ideal: crear una función que automatice alguno de los pasos)
+
+
+B) construir la malla de hexágonos, con ID por polígono. Definir tamaño. 
+  St_join() para vincular las propieadades a los hexágonos. 
+  OJO: ¿qué pasa con los hexágonos que tienen 1 sola propiedad? hay que checkear que sea un valor representativo     porque sino sesgaría fuerte
+  OJO2: hexágonos que en alguno de los 2 períodos no registren valores, se van a temrinar eliminando de la           comparación final
+
+
+C) analizar cómo varió cada uno de los hexágonos. Calcular el % de variación y hacer mapita.
+  incoporar alguna otra variable y ver si hay correlación con eso. 
+  
+  
+  
+
+
+
+
