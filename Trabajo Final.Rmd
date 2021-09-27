@@ -4,7 +4,7 @@ output: html_notebook
 ---
 
 PROPUESTA:
-DESAGREGAR LA VARIACIÓN DE PRECIOS DE LAS PROPIEDADES INMOBILIARIAS DURANTE LA PANDEMIA EN UNA UNIDAD DE ANÁLISIS VIRTUAL (MALLA EXAGONAL)
+DESAGREGAR LA VARIACIÓN DE PRECIOS DE LAS PROPIEDADES INMOBILIARIAS DURANTE LA PANDEMIA EN UNA UNIDAD DE ANÁLISIS VIRTUAL (MALLA HEXAGONAL)
 
 Construir una malla hexagonal que refleje: 
     1- promedio m2 en venta 01/03/2020 - 31/03/2020
@@ -42,7 +42,98 @@ C) analizar cómo varió cada uno de los hexágonos. Calcular el % de variación
   
   
   
+```{r message=FALSE, warning=FALSE}
+library(sf)
+library(tidyverse)
+library(ggplot2)
+library(skimr)
+library(annotater)
+library(sp)
+library(rgeos)
+library(osmdata)
+```
+
+```{r}
+dptos_venta <- read.csv("data/ar_properties.csv")
+barrios_CABA <- st_read("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/barrios/barrios.geojson") %>% 
+  select() %>% 
+  st_transform(crs = 4326)
+```
+
+```{r}
+grid <- st_make_grid(barrios_CABA, cellsize = .01, what = "polygons", square = FALSE)
+
+grid <- st_sf(index = 1:length(lengths(grid)), grid) %>%  #le agregamos un índice
+  st_transform(crs = 4326)
+```
+
+```{r}
+bbox_CABA_limite <- getbb("Ciudad Autónoma de Buenos Aires, Argentina", format_out = "sf_polygon")
+bbox_CABA_limite <- bbox_CABA_limite$multipolygon
+```
+
+
+```{r}
+hex <- st_intersection(grid, bbox_CABA_limite)
+```
+
+
+```{r}
+ggplot()+
+  geom_sf(data = barrios_CABA, fill="lightgray", size=.8) + 
+  geom_sf(data=hex, fill=NA, color="brown4")+
+  theme_void()
+```
+
+```{r}
+radios <- st_read("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/informacion-censal-por-radio/caba_radios_censales.geojson") %>% 
+  select(-WKT) %>% 
+  st_transform(crs = 4326) %>% 
+  mutate(AREA=as.numeric(st_area(.))) %>%
+  mutate(DENSIDAD=(as.numeric(TOTAL_POB))/AREA)
+```
+
+```{r}
+ggplot()+
+  geom_sf(data=radios, aes(fill=DENSIDAD), color=NA)+
+  geom_sf(data = barrios_CABA, fill=NA, size=.8) + 
+  geom_sf(data=hex, fill=NA, color="white")+
+  scale_fill_viridis_c()+
+  theme_void()
+```
 
 
 
+```{r}
+hex2 <- st_centroid(radios) %>% st_join(hex)
+```
 
+
+```{r}
+ggplot()+
+  geom_sf(data=hex) +
+  geom_sf(data=hex2, aes(color=DENSIDAD))+
+  scale_color_viridis_c()+
+  theme_void()
+```
+```{r}
+hex3 <- hex2 %>% 
+  group_by(index) %>% 
+  summarise(PROM_DENS=mean(DENSIDAD)) %>% 
+  as.data.frame() %>% 
+  select(-geometry)
+```
+
+```{r}
+hex_densidad <- left_join(hex3, hex, by="index")
+```
+
+```{r}
+ggplot()+
+  geom_sf(data=barrios_CABA, fill=NA) +
+  geom_sf(data=hex_densidad, aes(fill=PROM_DENS, geometry = grid))+
+  scale_fill_viridis_c() +
+  theme_void()
+```
+ 
+ 
