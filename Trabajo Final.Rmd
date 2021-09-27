@@ -54,7 +54,6 @@ library(osmdata)
 ```
 
 ```{r}
-dptos_venta <- read.csv("data/ar_properties.csv")
 barrios_CABA <- st_read("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/barrios/barrios.geojson") %>% 
   select() %>% 
   st_transform(crs = 4326)
@@ -89,8 +88,8 @@ ggplot()+
 radios <- st_read("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/informacion-censal-por-radio/caba_radios_censales.geojson") %>% 
   select(-WKT) %>% 
   st_transform(crs = 4326) %>% 
-  mutate(AREA=as.numeric(st_area(.))) %>%
-  mutate(DENSIDAD=(as.numeric(TOTAL_POB))/AREA)
+  mutate(AREA=(as.integer(st_area(.)))*0.0001) %>% #multriplicamos para convertir de m2 a ha
+  mutate(DENSIDAD=(as.integer(TOTAL_POB))/AREA)
 ```
 
 ```{r}
@@ -119,7 +118,7 @@ ggplot()+
 ```{r}
 hex3 <- hex2 %>% 
   group_by(index) %>% 
-  summarise(PROM_DENS=mean(DENSIDAD)) %>% 
+  summarise(PROM_DENS=mean(DENSIDAD), INSTANCIAS=n()) %>% 
   as.data.frame() %>% 
   select(-geometry)
 ```
@@ -130,8 +129,9 @@ hex_densidad <- left_join(hex3, hex, by="index")
 
 ```{r}
 ggplot()+
-  geom_sf(data=barrios_CABA, fill=NA) +
+  geom_sf(data=barrios_CABA, fill="lightgray") +
   geom_sf(data=hex_densidad, aes(fill=PROM_DENS, geometry = grid))+
+  geom_sf(data=hex_densidad %>% filter(INSTANCIAS<=4), aes(geometry = grid), fill="red")+
   scale_fill_viridis_c() +
   theme_void()
 ```
