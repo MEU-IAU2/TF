@@ -23,23 +23,75 @@ Incorporar alguna otra variable que pueda llegar a explicarlo, como:
 
 
 
+LIBRERIAS
+vroom (cargar datos rapidos)
+annotator (te da que hacer cada library)
+skimr (analisis estadistico rapido) ---> skimr::skim(df)
+
+
+
 Pasos principales para esta parte:
 
-A) importar, explorar y limpiar los datos de propiedades inmobiliarias. Eliminar outliers (ver formula).
-Gráficos de barra y mapita por barrio que luego vamos a desagregar en hexágonos. ¿algo llamativo?
-
-REPETIR PARA MARZO 2021 (ideal: crear una función que automatice alguno de los pasos)
-
-
-B) construir la malla de hexágonos, con ID por polígono. Definir tamaño. 
-  St_join() para vincular las propieadades a los hexágonos. 
-  OJO: ¿qué pasa con los hexágonos que tienen 1 sola propiedad? hay que checkear que sea un valor representativo     porque sino sesgaría fuerte
-  OJO2: hexágonos que en alguno de los 2 períodos no registren valores, se van a temrinar eliminando de la           comparación final
+A) CREACIÓN DE HEXÁGONOS
+  - explicación creación hexágonos (Unidad de análisis virtual)
+  - Creación de la malla
 
 
-C) analizar cómo varió cada uno de los hexágonos. Calcular el % de variación y hacer mapita.
-  incoporar alguna otra variable y ver si hay correlación con eso. 
+B) DENSIDAD: 
+  - Importar radios censales 
+  - Graficar por barrios
+  - Disolver por hexágonos
+
+
+C) USOS (SI ALCANZA EL TIEMPO): 
+  - Importar RUS (releva. usos del suelo)
+  - Agrupar por 5/6 categorías
+  - calcular centroides de las parcelas 
+  - join espacial del centroide a la malla hexagonal
+  - cual es el uso predominante del hexágono?
   
+  
+D) DATOS TERRENOS EN VENTA (BUENOS AIRES DATA)
+
+  DATASET TERRENOS EN VENTA 2020 (TODO EL AÑO)
+  DATASET TERRENOS EN VENTA (POSPANDEMIA: 2°, 3° Y 4° TRIMESTRE 2021)
+  
+  - exploración de datos (skim) + grafiquitos que pinten
+  - limpieza de datos. Eliminar outliers (CREAR FUNCION PARA FILTRAR OUTLIERS?)
+  
+  Q1-1.5*IQR
+  Q3+1.5*IQR
+  
+Q1=quantile(df$PRECIO, c(.25))
+Q3=quantile(df$PRECIO, c(.75))
+IQR= Q3-Q1
+
+lim_inf=Q1-1.5*IQR
+lim_sup=Q3+1.5*IQR
+  
+df_filter <- filter(df, PRECIO?? >lim_inf & precio_m2 < lim_sup)
+
+Join espacial con HEXAGONOS 
+
+
+crear objeto umbral:
+
+umbral <- 4     
+OJO: DETERMINAR UMBRAL. HEXÁGONOS CON MENOS INSTANCIAS QUE EL UMBRAL SE ELIMINAN/NO SE TIENEN EN CUENTA POR SESGO
+
+Una vez que tenemos los hexágonos con 2 columnas: promedio Marzo 2020 y promedio Marzo 2021. 
+
+mutate (VARIACION=marzo2021/marzo2020*100) 
+
+GRAFICAR HEXÁGONOS CON PRECIOS 2020 Y 2021
+GRAFICAR HEXÁGONOS CON VARIACIÓN 
+
+INTERPRETAR
+
+
+E) SI SOBRA TIEMPO, VER CORRELACIÓN. .corr (?)
+
+ 
   
   
 ```{r message=FALSE, warning=FALSE}
@@ -65,6 +117,12 @@ grid <- st_make_grid(barrios_CABA, cellsize = .01, what = "polygons", square = F
 grid <- st_sf(index = 1:length(lengths(grid)), grid) %>%  #le agregamos un índice
   st_transform(crs = 4326)
 ```
+
+```{r}
+write(grid, )
+```
+
+
 
 ```{r}
 bbox_CABA_limite <- getbb("Ciudad Autónoma de Buenos Aires, Argentina", format_out = "sf_polygon")
