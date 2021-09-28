@@ -100,9 +100,9 @@ library(tidyverse)
 library(ggplot2)
 library(skimr)
 library(annotater)
-library(sp)
-library(rgeos)
-library(osmdata)
+library(sp) #??
+library(rgeos) #??
+library(osmdata) 
 ```
 
 ```{r}
@@ -117,11 +117,6 @@ grid <- st_make_grid(barrios_CABA, cellsize = .01, what = "polygons", square = F
 grid <- st_sf(index = 1:length(lengths(grid)), grid) %>%  #le agregamos un índice
   st_transform(crs = 4326)
 ```
-
-```{r}
-write(grid, )
-```
-
 
 
 ```{r}
