@@ -105,30 +105,38 @@ library(rgeos) #??
 library(osmdata) 
 ```
 
+## Desarrollo
+
+### Creación de hexágonos
+
+En primer lugar vamos a descargar los barrios de CABA
+
 ```{r}
 barrios_CABA <- st_read("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/barrios/barrios.geojson") %>% 
   select() %>% 
   st_transform(crs = 4326)
 ```
 
+Creamos la grilla hexagonal
+
 ```{r}
 grid <- st_make_grid(barrios_CABA, cellsize = .01, what = "polygons", square = FALSE)
 
 grid <- st_sf(index = 1:length(lengths(grid)), grid) %>%  #le agregamos un índice
-  st_transform(crs = 4326)
+  st_transform(crs = 4326) #mismo crs
 ```
 
+Descargaremos el límite de CABA para hacer la intersercción con la grilla
 
 ```{r}
 bbox_CABA_limite <- getbb("Ciudad Autónoma de Buenos Aires, Argentina", format_out = "sf_polygon")
 bbox_CABA_limite <- bbox_CABA_limite$multipolygon
 ```
 
-
 ```{r}
 hex <- st_intersection(grid, bbox_CABA_limite)
 ```
-
+Veamos cómo se ve: 
 
 ```{r}
 ggplot()+
@@ -137,13 +145,21 @@ ggplot()+
   theme_void()
 ```
 
+Muy bien, esta será nuestra Unidad de Análisis a partide ahora. 
+
+
+### Densidad poblacional
+
+Vamos a cargar la info de radios censales de GCABA
+
 ```{r}
 radios <- st_read("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/informacion-censal-por-radio/caba_radios_censales.geojson") %>% 
   select(-WKT) %>% 
   st_transform(crs = 4326) %>% 
-  mutate(AREA=(as.integer(st_area(.)))*0.0001) %>% #multriplicamos para convertir de m2 a ha
-  mutate(DENSIDAD=(as.integer(TOTAL_POB))/AREA)
+  mutate(AREA=(as.integer(st_area(.)))*0.0001) %>% #calculamos el área y la convertimos en Ha
+  mutate(DENSIDAD=(as.integer(TOTAL_POB))/AREA) #calculamos la densidad poblacional de cada radio censal (hab/Ha)
 ```
+Veamos cómo queda sobre la grilla... en primer lugar, sólo superponiendo: 
 
 ```{r}
 ggplot()+
@@ -154,12 +170,14 @@ ggplot()+
   theme_void()
 ```
 
-
+Ahora sí, sin sobreescribir la grilla haremos el join espacial de los centroides de los radios a la grilla (UA). 
+Es decir, todos los centroides de los radios censales que caigan dentro del mismo hexágono, formarán parte del mismo.
 
 ```{r}
 hex2 <- st_centroid(radios) %>% st_join(hex)
 ```
-
+Hasta acá tenemos la info asociada en forma de puntos. 
+Veámosla:
 
 ```{r}
 ggplot()+
@@ -168,23 +186,34 @@ ggplot()+
   scale_color_viridis_c()+
   theme_void()
 ```
+
+Vamos a hacer que el hexágono tome como valor el promedio de todos los valores incolucrados.
+
 ```{r}
 hex3 <- hex2 %>% 
-  group_by(index) %>% 
+  group_by(index) %>% #agrupamos por ID de hexágono
   summarise(PROM_DENS=mean(DENSIDAD), INSTANCIAS=n()) %>% 
+  #resumimos por densidad pero también por cantidad de radios que caen dentro del hexágonos
   as.data.frame() %>% 
   select(-geometry)
 ```
 
 ```{r}
-hex_densidad <- left_join(hex3, hex, by="index")
+hex_densidad <- left_join(hex3, hex, by="index") #union espacial con la grilla original
+```
+
+
+Entendiendo que un hexágonos con muy pocos valores puede estar sesgados por valores poco representativos, vamos a determinar un umbral. En el caso de que el hexágono no registra menos valores que dicho límite inferior, no lo tenderemos en cuenta para nuestra correlación.
+
+```{r}
+umbral <- 4
 ```
 
 ```{r}
 ggplot()+
   geom_sf(data=barrios_CABA, fill="lightgray") +
   geom_sf(data=hex_densidad, aes(fill=PROM_DENS, geometry = grid))+
-  geom_sf(data=hex_densidad %>% filter(INSTANCIAS<=4), aes(geometry = grid), fill="red")+
+  geom_sf(data=hex_densidad %>% filter(INSTANCIAS<umbral), aes(geometry = grid), fill="red")+
   scale_fill_viridis_c() +
   theme_void()
 ```

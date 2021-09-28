@@ -36,7 +36,8 @@ unique(RUS$TIPO1_16)
 Cuando las parcelas tienen más de un uso están registradas como instancias diferentes, por lo que las agruparemos para ver qué tanta diversidad de usos tienen.
 
 ```{r}
-#OJO, esto tarda en computar! 
+#OJO
+#esto tarda en computar! 
 
 RUS_grupo <- RUS %>% 
   group_by(SMP) %>% 
@@ -48,11 +49,13 @@ RUS_grupo <- RUS %>%
 ```{r}
 #lo guardamos para no tener que agruparlo nuevamente si corremos el código
 
-write.csv(RUS_grupo,"data/rus-procesado/RUS-grupo.csv")
+#write.csv(RUS_grupo,"data/rus-procesado/RUS-grupo.csv")
 ```
 
 ```{r}
-RUS_grupo <- read.csv("data/rus-procesado/RUS-grupo.csv")
+RUS_grupo <- read.csv("data/rus-procesado/RUS-grupo.csv") %>% 
+  select(-X)
+#cargamos el daset previamente generado y eliminamos el índice que genera sobre las parcelas (X)
 ```
 
 ```{r}
@@ -61,9 +64,19 @@ RUS_geo <- RUS %>%
   select(SMP, X, Y) #nos quedamos con lon y lat para unirla por SMP
 #guardamos X e Y en vez de geomtry para no generar un archivo demasiado pesado 
 #en el código principal lo convertiremos a geográfico
-
-RUS <- left_join(RUS_geo, RUS_grupo, by="SMP") 
 ```
+
+```{r}
+RUS <- left_join(RUS_geo, RUS_grupo, by="SMP") #unimos por SMP 
+```
+
+Veamos cómo quedaron los datos que generamos:
+
+```{r}
+head(RUS)
+```
+
+Ahora sí, los exportamos para improtarlos en el código base.
 
 ```{r}
 write.csv(RUS,"data/rus-procesado/RUS-grupo-geo.csv")
