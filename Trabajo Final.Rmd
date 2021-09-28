@@ -140,8 +140,8 @@ Veamos cómo se ve:
 
 ```{r}
 ggplot()+
-  geom_sf(data = barrios_CABA, fill="lightgray", size=.8) + 
-  geom_sf(data=hex, fill=NA, color="brown4")+
+  geom_sf(data = barrios_CABA, fill="grey85", size=.8) + 
+  geom_sf(data=hex, fill=NA, color="grey45")+
   theme_void()
 ```
 
@@ -181,7 +181,7 @@ Veámosla:
 
 ```{r}
 ggplot()+
-  geom_sf(data=hex) +
+  geom_sf(data=hex, fill="grey85") +
   geom_sf(data=hex2, aes(color=DENSIDAD))+
   scale_color_viridis_c()+
   theme_void()
@@ -211,11 +211,71 @@ umbral <- 4
 
 ```{r}
 ggplot()+
-  geom_sf(data=barrios_CABA, fill="lightgray") +
+  geom_sf(data=barrios_CABA, fill="grey85") +
   geom_sf(data=hex_densidad, aes(fill=PROM_DENS, geometry = grid))+
   geom_sf(data=hex_densidad %>% filter(INSTANCIAS<umbral), aes(geometry = grid), fill="red")+
   scale_fill_viridis_c() +
   theme_void()
 ```
  
+ 
+ 
+### RUS 
+
+Para facilitar el trabajo en equipo, este set de datos fue procesado en RUS.Rmd, dentro del mismo repositorio. 
+Resume la cantidad de usos que regista cada parcela. 
+ 
+```{r}
+RUS <- st_read("data/rus-procesado/RUS-grupo-geo.csv")
+```
+```{r}
+#RUS_grupo <- RUS %>% 
+ # group_by(SMP) %>% 
+ # summarise(CANTIDAD=n())
+```
+
+Convertimos el set de datos de usos en datos geográfico
+
+```{r}
+RUS_geo <- RUS %>% 
+  st_as_sf(coords = c("X", "Y"), crs = 4326)
+```
+
+```{r}
+hex2 <- RUS_geo %>% st_join(hex)
+```
+
+```{r}
+hex3 <- hex2 %>% 
+  as.data.frame() %>% 
+  select(-geometry) %>% 
+  group_by(index, CANTIDAD) %>% #agrupamos por ID de hexágono
+  summarise(CANTIDAD_USOS=sum(as.numeric(CANTIDAD)), INSTANCIAS=n()) %>% 
+  mutate(DIVERSIDAD_USOS=CANTIDAD_USOS/INSTANCIAS) %>% 
+  select(-CANTIDAD, -INSTANCIAS)
+
+  #resumimos por cantidad de usos por hexágono
+```
+
+```{r}
+hex_densidad_usos <- left_join(hex3, hex_densidad, by="index") #union espacial con la grilla que ya tiene la densidad
+```
+
+```{r}
+quiebres <- c(0,0.2,0.4,0.6,0.8,1)
+
+
+ggplot()+
+  geom_sf(data=barrios_CABA, fill="grey85") +
+  geom_sf(data=hex_densidad_usos, aes(fill=(cut(DIVERSIDAD_USOS, breaks = seq(0, 400, 50))), geometry = grid))+
+  scale_fill_viridis_d() +
+  theme_void()+
+  labs(title = "Diversidad de usos",
+       subtitle = "Ciudad Autónoma de Buenos Aires",
+       fill = " Diversidad de usos/\n\ cantidad de parcelas",
+       caption = "Fuente: GCBA data")
+```
+
+
+
  
