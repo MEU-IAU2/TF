@@ -1,0 +1,70 @@
+---
+title: "RUS"
+output: html_document
+---
+
+En este notebook trabajaremos los datos del Relevamiento de Uso del Suelo del GCABA. 
+El objetivo es averiguar cuántos usos principales diferentes registra cada parcela, en el intento de entender la diversidad de usos. 
+
+Se trabaja como un código complemtario para luego unirlo al markdown principal.
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(sf)
+```
+
+
+```{r}
+RUS <- st_read("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/relevamiento-usos-del-suelo/relevamiento-usos-suelo-2017.geojson") 
+#cargamos el relevamiento de uso del suelo del GCABA
+
+RUS <- st_transform(RUS, crs=4326) 
+```
+
+```{r}
+head(RUS)
+```
+
+```{r}
+unique(RUS$TIPO1_16)
+
+#Estas son las categorías resumidas de usos, que vamos a usan para este trabajo
+```
+
+
+Cuando las parcelas tienen más de un uso están registradas como instancias diferentes, por lo que las agruparemos para ver qué tanta diversidad de usos tienen.
+
+```{r}
+#OJO, esto tarda en computar! 
+
+RUS_grupo <- RUS %>% 
+  group_by(SMP) %>% 
+  summarise(CANTIDAD=n()) %>% 
+  as.data.frame() %>% 
+  select(-geometry)
+```
+
+```{r}
+#lo guardamos para no tener que agruparlo nuevamente si corremos el código
+
+write.csv(RUS_grupo,"data/rus-procesado/RUS-grupo.csv")
+```
+
+```{r}
+RUS_grupo <- read.csv("data/rus-procesado/RUS-grupo.csv")
+```
+
+```{r}
+RUS_geo <- RUS %>% 
+  as.data.frame() %>% 
+  select(SMP, X, Y) #nos quedamos con lon y lat para unirla por SMP
+#guardamos X e Y en vez de geomtry para no generar un archivo demasiado pesado 
+#en el código principal lo convertiremos a geográfico
+
+RUS <- left_join(RUS_geo, RUS_grupo, by="SMP") 
+```
+
+```{r}
+write.csv(RUS,"data/rus-procesado/RUS-grupo-geo.csv")
+```
