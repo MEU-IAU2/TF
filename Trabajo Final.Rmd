@@ -99,7 +99,6 @@ library(sf)
 library(tidyverse)
 library(ggplot2)
 library(skimr)
-library(annotater)
 library(sp) #??
 library(rgeos) #??
 library(osmdata) 
@@ -281,11 +280,24 @@ ggplot()+
 
 Para facilitar el trabajo en equipo, este set de datos fue procesado en TERRENOS 2019.Rmd, dentro del mismo repositorio. Resume la venta de terrenos en CABA en el año 2019
 
+
+
 ```{r}
-Terrenos_2019 <- read_Sf("data/terrenos-2019/Terrenos_venta_2019.shp") 
+Terrenos_2019 <- read_sf("data/terrenos-2019/Terrenos_venta_2019.shp") 
 
 Terrenos_2019 <- st_transform(Terrenos_2019, crs=4326) 
 ```
 
- 
- 
+```{r}
+summary(Terrenos_2019)
+```
+
+```{r}
+dim(Terrenos_2019)
+```
+```{r}
+head(Terrenos_2019)
+```
+
+
+
