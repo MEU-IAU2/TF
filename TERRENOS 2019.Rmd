@@ -3,7 +3,7 @@ title: "TERRENOS 2019"
 output: html_notebook
 ---
 
-En este notebook trabajaremos los datos de valores de terrenos en CABA correspondientes al los meses de abril a diciembre del año 2019. El objetivo es analizar el valor de venta de los terrenos pre pandemia y su distribución geográfica dentro de la CABA a fin de poder compararlos con el año 2020. 
+En este notebook trabajaremos los datos de valores de terrenos en CABA correspondientes al año 2019. El objetivo es analizar el valor de venta de los terrenos pre pandemia y su distribución geográfica dentro de la CABA a fin de poder compararlos con el año 2020. 
 
 Se trabaja como un código complemtario para luego unirlo al markdown principal.
 
@@ -18,5 +18,18 @@ Terrenos_2019 <- read_sf("data/terrenos-2019/Terrenos_venta_2019.shp")
 
 Terrenos_2019 <- st_transform(Terrenos_2019, crs=4326) 
 ```
+
+```{r}
+summary(Terrenos_2019)
+```
+
+```{r}
+dim(Terrenos_2019)
+```
+```{r}
+head(Terrenos_2019)
+```
+
+
 
 

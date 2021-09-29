@@ -301,3 +301,19 @@ head(Terrenos_2019)
 
 
 
+```{r}
+
+```
+
+
+```{r}
+ggplot()+
+  geom_sf(data=Terrenos_2019, aes(fill=PRECIOUSD), color=NA)+
+  geom_sf(data = barrios_CABA, fill=NA, size=.8) + 
+  geom_sf(data=hex, fill=NA, color="white")+
+  scale_fill_viridis_c()+
+  theme_void()
+```
+
+
+

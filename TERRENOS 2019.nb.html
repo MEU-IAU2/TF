@@ -215,7 +215,7 @@ pre code {
 
 
 <!-- rnb-text-begin -->
-<p>En este notebook trabajaremos los datos de valores de terrenos en CABA correspondientes al los meses de abril a diciembre del año 2019. El objetivo es analizar el valor de venta de los terrenos pre pandemia y su distribución geográfica dentro de la CABA a fin de poder compararlos con el año 2020.</p>
+<p>En este notebook trabajaremos los datos de valores de terrenos en CABA correspondientes al año 2019. El objetivo es analizar el valor de venta de los terrenos pre pandemia y su distribución geográfica dentro de la CABA a fin de poder compararlos con el año 2020.</p>
 <p>Se trabaja como un código complemtario para luego unirlo al markdown principal.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
@@ -259,8 +259,67 @@ Terrenos_2019 &lt;- st_transform(Terrenos_2019, crs=4326) </code></pre>
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3VtbWFyeShUZXJyZW5vc18yMDE5KVxuYGBgIn0= -->
+<pre class="r"><code>summary(Terrenos_2019)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiICBPUEVSQUNJT04gICAgICAgICAgICAgVElQTyAgICAgICAgICAgICBMQVRJVFVEICAgICAgICAgICAgTE9OR0lUVUQgICAgICAgICAgICBNMlRPVEFMICAgICAgIFxuIExlbmd0aDo1MDA2ICAgICAgICBMZW5ndGg6NTAwNiAgICAgICAgTGVuZ3RoOjUwMDYgICAgICAgIExlbmd0aDo1MDA2ICAgICAgICBNaW4uICAgOiAgICAwLjAgIFxuIENsYXNzIDpjaGFyYWN0ZXIgICBDbGFzcyA6Y2hhcmFjdGVyICAgQ2xhc3MgOmNoYXJhY3RlciAgIENsYXNzIDpjaGFyYWN0ZXIgICAxc3QgUXUuOiAgMjAwLjAgIFxuIE1vZGUgIDpjaGFyYWN0ZXIgICBNb2RlICA6Y2hhcmFjdGVyICAgTW9kZSAgOmNoYXJhY3RlciAgIE1vZGUgIDpjaGFyYWN0ZXIgICBNZWRpYW4gOiAgMjk2LjAgIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBNZWFuICAgOiAgNDU1LjUgIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAzcmQgUXUuOiAgNDMzLjAgIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBNYXguICAgOjEzMDAwLjAgIFxuICBESVJFQ0NJT04gICAgICAgICAgICBDQU1CSU8gICAgICAgICAgICBQUkVDSU9VU0QgICAgICAgICBQUkVDSU9BUlMgICAgICAgICAgIFBSRUNJT1VTRE0gICAgICBcbiBMZW5ndGg6NTAwNiAgICAgICAgTGVuZ3RoOjUwMDYgICAgICAgIE1pbi4gICA6ICAgMTU3MzMgICBMZW5ndGg6NTAwNiAgICAgICAgTWluLiAgIDogICA3NC42MyAgXG4gQ2xhc3MgOmNoYXJhY3RlciAgIENsYXNzIDpjaGFyYWN0ZXIgICAxc3QgUXUuOiAgNDAwMDAwICAgQ2xhc3MgOmNoYXJhY3RlciAgIDFzdCBRdS46IDE0MTcuMjUgIFxuIE1vZGUgIDpjaGFyYWN0ZXIgICBNb2RlICA6Y2hhcmFjdGVyICAgTWVkaWFuIDogIDY4NTAwMCAgIE1vZGUgIDpjaGFyYWN0ZXIgICBNZWRpYW4gOiAyMTc2Ljk1ICBcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE1lYW4gICA6ICA5NTI0NDYgICAgICAgICAgICAgICAgICAgICAgTWVhbiAgIDogMjY4NS44OSAgXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAzcmQgUXUuOiAxMTAwMDAwICAgICAgICAgICAgICAgICAgICAgIDNyZCBRdS46IDM0MjAuNDUgIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTWF4LiAgIDoxNDA5NTk5OCAgICAgICAgICAgICAgICAgICAgICBNYXguICAgOjI3MjcyLjczICBcbiAgIFBSRUNJT0FSU00gICAgICAgICAgQkFSUklPUyAgICAgICAgICAgICAgQ09NVU5BICAgICAgICAgICAgICAgZ2VvbWV0cnkgICBcbiBNaW4uICAgOiAgICAgICAgMCAgIExlbmd0aDo1MDA2ICAgICAgICBNaW4uICAgOiAxLjAwICAgUE9JTlQgICAgICAgIDo1MDA2ICBcbiAxc3QgUXUuOiAgICA2NDY1NCAgIENsYXNzIDpjaGFyYWN0ZXIgICAxc3QgUXUuOiA1LjAwICAgZXBzZzo0MzI2ICAgIDogICAwICBcbiBNZWRpYW4gOiAgIDEwNDA4MyAgIE1vZGUgIDpjaGFyYWN0ZXIgICBNZWRpYW4gOjExLjAwICAgK3Byb2o9bG9uZy4uLjogICAwICBcbiBNZWFuICAgOiAgIDM0MTI4OCAgICAgICAgICAgICAgICAgICAgICBNZWFuICAgOiA5LjU5ICAgICAgICAgICAgICAgICAgICAgICBcbiAzcmQgUXUuOiAgIDE2NzUzNCAgICAgICAgICAgICAgICAgICAgICAzcmQgUXUuOjE0LjAwICAgICAgICAgICAgICAgICAgICAgICBcbiBNYXguICAgOjIwNzAwMDAwMCAgICAgICAgICAgICAgICAgICAgICBNYXguICAgOjE1LjAwICAgICAgICAgICAgICAgICAgICAgICBcbiJ9 -->
+<pre><code>  OPERACION             TIPO             LATITUD            LONGITUD            M2TOTAL       
+ Length:5006        Length:5006        Length:5006        Length:5006        Min.   :    0.0  
+ Class :character   Class :character   Class :character   Class :character   1st Qu.:  200.0  
+ Mode  :character   Mode  :character   Mode  :character   Mode  :character   Median :  296.0  
+                                                                             Mean   :  455.5  
+                                                                             3rd Qu.:  433.0  
+                                                                             Max.   :13000.0  
+  DIRECCION            CAMBIO            PRECIOUSD         PRECIOARS           PRECIOUSDM      
+ Length:5006        Length:5006        Min.   :   15733   Length:5006        Min.   :   74.63  
+ Class :character   Class :character   1st Qu.:  400000   Class :character   1st Qu.: 1417.25  
+ Mode  :character   Mode  :character   Median :  685000   Mode  :character   Median : 2176.95  
+                                       Mean   :  952446                      Mean   : 2685.89  
+                                       3rd Qu.: 1100000                      3rd Qu.: 3420.45  
+                                       Max.   :14095998                      Max.   :27272.73  
+   PRECIOARSM          BARRIOS              COMUNA               geometry   
+ Min.   :        0   Length:5006        Min.   : 1.00   POINT        :5006  
+ 1st Qu.:    64654   Class :character   1st Qu.: 5.00   epsg:4326    :   0  
+ Median :   104083   Mode  :character   Median :11.00   +proj=long...:   0  
+ Mean   :   341288                      Mean   : 9.59                       
+ 3rd Qu.:   167534                      3rd Qu.:14.00                       
+ Max.   :207000000                      Max.   :15.00                       </code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZGltKFRlcnJlbm9zXzIwMTkpXG5gYGAifQ== -->
+<pre class="r"><code>dim(Terrenos_2019)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDUwMDYgICAxNFxuIn0= -->
+<pre><code>[1] 5006   14</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaGVhZChUZXJyZW5vc18yMDE5KVxuYGBgIn0= -->
+<pre class="r"><code>head(Terrenos_2019)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiU2ltcGxlIGZlYXR1cmUgY29sbGVjdGlvbiB3aXRoIDYgZmVhdHVyZXMgYW5kIDEzIGZpZWxkc1xuR2VvbWV0cnkgdHlwZTogUE9JTlRcbkRpbWVuc2lvbjogICAgIFhZXG5Cb3VuZGluZyBib3g6ICB4bWluOiAtNTguNDU1NTkgeW1pbjogLTM0LjYyOTQ0IHhtYXg6IC01OC40MzE4IHltYXg6IC0zNC42MjE5MlxuR2VvZGV0aWMgQ1JTOiAgV0dTIDg0XG4ifQ== -->
+<pre><code>Simple feature collection with 6 features and 13 fields
+Geometry type: POINT
+Dimension:     XY
+Bounding box:  xmin: -58.45559 ymin: -34.62944 xmax: -58.4318 ymax: -34.62192
+Geodetic CRS:  WGS 84</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInNmIiwidGJsX2RmIiwidGJsIiwiZGF0YS5mcmFtZSJdLCJucm93Ijo2LCJuY29sIjoxNCwic3VtbWFyeSI6eyJBIHRpYmJsZSI6WyI2IHggMTQiXX19LCJyZGYiOiJINHNJQUFBQUFBQUFCdDFXVDJ6YlZCaDMwNlpkQ2kySUNRa05EbFlPTUVRYStXOFM3MVFuTVptbkpJNmNaQ3NLVWVjNmJ1ck44Y3RzdDJzM0NjRkFDSEZBZ3dNYUlNUVZ1Q0JOYUNkQUZSS0lFMmN1RXdnSklTNElCQktvaDViblA4KzEzZmF3RlM0OHlmN2UrNzN2L2I3dmUrOTdmK1RxRWoyN05JdGgyQ1EyTlFIL2FWakZwaXN0a21JcERKdEt3ZFlFTm9WbFhMa0orMC9DeWp6OEhuYlZnbzdKOHgzK2ZxdHhwcG1PSU10Q1UvbzNtM0VMRHl6UVRMNUFjUXhkTE1XaEVsY28wSEdvd05JTUU0ZVlFa01VQW1qV2h5aElGMGRJam1RUDJHVkxlWWJoU2h4VGlrTWxtaTNTTVlpR2pEUVRoOGdpVjJJREtPTVBKSXBjVElkbFdSaERzRDdUaTZPTDdsSmlpKzg0dnJ3ZXRLOWd2cnl4N2N2WGZzT0NFdlgzVkVNeE5uUlRzWEhlR21xbTQxVVZBMmNJSXRBNGVRN1lHbDRHcHI2cXFEckFTWllLdThwU1UzeVdyNGdTanArVDJrSmsxSVBuUmFHT3UweUZFSHVjMzhqalZjM0F5NHFsQXJ3Q3pXbW1aaWs0RmFvOFdnV200Z0NjTnpZVVM3dm1qcWRoWjl6bk5NUG13eEhIYUFRenlCUGYvT0JPQzg4KzcwMFZYejQ5OXVRekxjS1RqMTNDb3YwSmIwNHdIRXU0QmJVTE5CRnRaMGlpU01ZVUdJSXFzcEUyV1NJT0owQkxmRnYwbC9EMTczeDU4NVl2UC9yVWw2OEUrSHRyYUluOXdESjNQdlR3SDcvM0Fsejh1ZXNIbUhya3B0ZStLM250eFQ4RS9KREFNaFcrek5mcllrZjZid0FNbS9Pc0hmbDVoNUFyM1doUzJ3M3U3YWVlS1ArMHpiZmV2UFIzc1pnNHRkS3FvZGgyRU1Ka0FLYVdua1BkTFVsc2R0Q0paSzhPb2RpTlVLdGZmZkRKVzVENnBiOCt2MVh4cVZONzk4dFd2TWljZXFFQjJhamE5ZDkvUFRhYmtMdndCZGptcFoydjc3WjJqc3RXdXZ6dGpkMFJaTHZkZlAvVlkvdDJwdlhsR3gvL0NkbmUvZVhKbHorN1g3YllxQlRLRkh0VlhVN29xNGxGejR3dFRkVnRIWmhCems5Z1lZa3BUcTJzZ00zQTdhbDl0LzFNaWt4eEpJejl6REtWa1lZeWF3b1JibzUwRTlXM0l2WE5rYks1ajhONlBMcUVReWo2RUo5VUxUdkkvRlJpU0Vab3RXdG4zRnNqM3BHNlVoT2tXa1Z1OTdJWGFtMjh4R1J6c3pnc1ZiN1RiVUFNV01ZQXIybGdvRG02aXJlM2JFY2I0U1FYNnJsRmdGdXkxWmJFNmo1SEFkNmNKRjNNVVZ3cFQ3RkZpcUxaQXIwL3dpMTFvVm5ybk8wMnhVNHZPOUljUzh2bXlINi83eXUxWkxFaFFQczFTOVBNcTdxNmxzMFIrOFA1WnEwdStDTUgyaENxd040OFFSWVpscVk0aWlVNWVIUFRpS3JTN21tR29ZOXRvQThVSTBmMUl6eExJb3g3aUtJekZFZDMxZ2NhZnJxdU9FOW5jeWF3bkxXNDA1SmNGZVFlMlkrajkrVFBZWWFCT1VTV2dRa3RhNHJ0SEdhWU9vN2hicHV2Q2Ixd2ZMc2l0WVJlOWl5dzlHdkFkT0JscVlMUkdKandZc1hCS2s1WGNkdGI3WHcyNnJnczhFRld4UEJ5V1ZycUxYQkViZ0hlUnprb29VQjIzYnh3c3krYmM5T3YzL2VUTnAzY3NtbmRISzg3S0pPdlhuYU9TSDQveVEvay9veTVySTNHemxad002Qzl2SnV3Tm8vMkF3eGVkaDhmVGJTbk9tSXJmQmJXK1k3WTZWYlJuVnFYbXJWSWU2WkJkYVFPWDBkVVZWRVdLaEdxNlFyZktJdmhwZFdDdmFMVWJWZmpBQyszMFlNdzFHakVFYWlDa0preUw4dWkxQTVOU0kxdUV6MlNUOEJNY3JmUVZ2S0VzOERWUERxQTNGbEp2UWgvZTN0N08wbEZlM1ZaQmNiNnlFeE05bEhNazhyUWduK1hjODdsdk5jdnNTcHovNjlWaWMvVnRLRnRhRWJ5ZFhGQ0JhYnRLQ2JLK0l3eWhCdDRxRGdhVXRBSDdwUGEyVHBpSDB6REY3VURMT3pnSllnMFpnZUtvK1JYTFpnQWgyMFlNSGJnM1FmOVNya1hSam94ZU1KS0FBK3RtMjRxRFJiVXRYWHo4Z0x0R29oc05MVHBwaVAxK2NReXA1SHJHanp2VEJSbzJsQldOQ05vek1PVTlUSTJQN2IwY0hKbUlXcm5IUUJQS1lUQWRFV0lGeHUyK3c5ckJ0ZUtwdzRBQUE9PSJ9 -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["OPERACION"],"name":[1],"type":["chr"],"align":["left"]},{"label":["TIPO"],"name":[2],"type":["chr"],"align":["left"]},{"label":["LATITUD"],"name":[3],"type":["chr"],"align":["left"]},{"label":["LONGITUD"],"name":[4],"type":["chr"],"align":["left"]},{"label":["M2TOTAL"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["DIRECCION"],"name":[6],"type":["chr"],"align":["left"]},{"label":["CAMBIO"],"name":[7],"type":["chr"],"align":["left"]},{"label":["PRECIOUSD"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["PRECIOARS"],"name":[9],"type":["chr"],"align":["left"]},{"label":["PRECIOUSDM"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["PRECIOARSM"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["BARRIOS"],"name":[12],"type":["chr"],"align":["left"]},{"label":["COMUNA"],"name":[13],"type":["int"],"align":["right"]},{"label":["geometry"],"name":[14],"type":["S3: sfc_POINT"],"align":["right"]}],"data":[{"1":"VTA","2":"TERRENO","3":"-34.6294378","4":"-58.4498948","5":"235","6":"Malvinas Argentinas al 400","7":"45.00","8":"1100000","9":"49500000","10":"4681","11":"210645","12":"CABALLITO","13":"6","14":"<S3: sfc_POINT>"},{"1":"VTA","2":"TERRENO","3":"-34.6289663","4":"-58.4483573","5":"1629","6":"Jose Bonifacio 1520","7":"45.00","8":"1400000","9":"63000000","10":"859","11":"38655","12":"CABALLITO","13":"6","14":"<S3: sfc_POINT>"},{"1":"VTA","2":"TERRENO","3":"-34.6265344","4":"-58.4326234","5":"438","6":"BONIFACIO  JOSE 400","7":"45.00","8":"2380000","9":"107100000","10":"1062","11":"47790","12":"CABALLITO","13":"6","14":"<S3: sfc_POINT>"},{"1":"VTA","2":"TERRENO","3":"-34.6248406","4":"-58.4317985","5":"272","6":"VIEL  al 600","7":"45.00","8":"895000","9":"40275000","10":"3290","11":"148050","12":"CABALLITO","13":"6","14":"<S3: sfc_POINT>"},{"1":"VTA","2":"TERRENO","3":"-34.622629","4":"-58.44079","5":"600","6":"Av. Del Barco Centenera 200","7":"45.00","8":"400000","9":"18000000","10":"667","11":"30015","12":"CABALLITO","13":"6","14":"<S3: sfc_POINT>"},{"1":"VTA","2":"TERRENO","3":"-34.621915","4":"-58.4555896","5":"798","6":"Donato Alvarez al 300","7":"45.00","8":"1400000","9":"63000000","10":"1754","11":"78930","12":"CABALLITO","13":"6","14":"<S3: sfc_POINT>"}],"options":{"columns":{"min":{},"max":[10],"total":[14]},"rows":{"min":[10],"max":[10],"total":[6]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlRFUlJFTk9TIDIwMTkiDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpFbiBlc3RlIG5vdGVib29rIHRyYWJhamFyZW1vcyBsb3MgZGF0b3MgZGUgdmFsb3JlcyBkZSB0ZXJyZW5vcyBlbiBDQUJBIGNvcnJlc3BvbmRpZW50ZXMgYWwgbG9zIG1lc2VzIGRlIGFicmlsIGEgZGljaWVtYnJlIGRlbCBhw7FvIDIwMTkuIEVsIG9iamV0aXZvIGVzIGFuYWxpemFyIGVsIHZhbG9yIGRlIHZlbnRhIGRlIGxvcyB0ZXJyZW5vcyBwcmUgcGFuZGVtaWEgeSBzdSBkaXN0cmlidWNpw7NuIGdlb2dyw6FmaWNhIGRlbnRybyBkZSBsYSBDQUJBIGEgZmluIGRlIHBvZGVyIGNvbXBhcmFybG9zIGNvbiBlbCBhw7FvIDIwMjAuIA0KDQpTZSB0cmFiYWphIGNvbW8gdW4gY8OzZGlnbyBjb21wbGVtdGFyaW8gcGFyYSBsdWVnbyB1bmlybG8gYWwgbWFya2Rvd24gcHJpbmNpcGFsLg0KDQpgYGB7cn0NCmxpYnJhcnkodGlkeXZlcnNlKQ0KbGlicmFyeShnZ3Bsb3QyKQ0KbGlicmFyeShzZikNCmBgYA0KDQpgYGB7cn0NClRlcnJlbm9zXzIwMTkgPC0gcmVhZF9zZigiZGF0YS90ZXJyZW5vcy0yMDE5L1RlcnJlbm9zX3ZlbnRhXzIwMTkuc2hwIikgDQoNClRlcnJlbm9zXzIwMTkgPC0gc3RfdHJhbnNmb3JtKFRlcnJlbm9zXzIwMTksIGNycz00MzI2KSANCmBgYA0KDQoNCg==</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlRFUlJFTk9TIDIwMTkiDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpFbiBlc3RlIG5vdGVib29rIHRyYWJhamFyZW1vcyBsb3MgZGF0b3MgZGUgdmFsb3JlcyBkZSB0ZXJyZW5vcyBlbiBDQUJBIGNvcnJlc3BvbmRpZW50ZXMgYWwgYcOxbyAyMDE5LiBFbCBvYmpldGl2byBlcyBhbmFsaXphciBlbCB2YWxvciBkZSB2ZW50YSBkZSBsb3MgdGVycmVub3MgcHJlIHBhbmRlbWlhIHkgc3UgZGlzdHJpYnVjacOzbiBnZW9ncsOhZmljYSBkZW50cm8gZGUgbGEgQ0FCQSBhIGZpbiBkZSBwb2RlciBjb21wYXJhcmxvcyBjb24gZWwgYcOxbyAyMDIwLiANCg0KU2UgdHJhYmFqYSBjb21vIHVuIGPDs2RpZ28gY29tcGxlbXRhcmlvIHBhcmEgbHVlZ28gdW5pcmxvIGFsIG1hcmtkb3duIHByaW5jaXBhbC4NCg0KYGBge3J9DQpsaWJyYXJ5KHRpZHl2ZXJzZSkNCmxpYnJhcnkoZ2dwbG90MikNCmxpYnJhcnkoc2YpDQpgYGANCg0KYGBge3J9DQpUZXJyZW5vc18yMDE5IDwtIHJlYWRfc2YoImRhdGEvdGVycmVub3MtMjAxOS9UZXJyZW5vc192ZW50YV8yMDE5LnNocCIpIA0KDQpUZXJyZW5vc18yMDE5IDwtIHN0X3RyYW5zZm9ybShUZXJyZW5vc18yMDE5LCBjcnM9NDMyNikgDQpgYGANCg0KYGBge3J9DQpzdW1tYXJ5KFRlcnJlbm9zXzIwMTkpDQpgYGANCg0KYGBge3J9DQpkaW0oVGVycmVub3NfMjAxOSkNCmBgYA0KYGBge3J9DQpoZWFkKFRlcnJlbm9zXzIwMTkpDQpgYGANCg0KDQoNCg0K</div>
 
 
 
