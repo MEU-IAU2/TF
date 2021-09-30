@@ -300,10 +300,52 @@ head(Terrenos_2019)
 ```
 
 
+```{r}
+Terrenos_2019_seleccion <- select(Terrenos_2019, LATITUD, LONGITUD, M2TOTAL, PRECIOUSD, BARRIOS, COMUNA, geometry) %>%
+  group_by(BARRIOS)%>%
+summarise (PROMEDIOM2 = mean(PRECIOUSD))
+```
+
+
+```{r}
+hex4 <- Terrenos_2019_seleccion %>% st_join(hex)
+```
+
+
+```{r}
+ggplot()+
+  geom_sf(data=Terrenos_2019_seleccion, aes(fill=BARRIOS), color=NA)+
+  geom_sf(data = barrios_CABA, fill=NA, size=.8) + 
+  geom_sf(data=hex4, fill=NA, color="white")+
+  theme_void()
+```
+
+
 
 ```{r}
 
 ```
+
+
+
+Ahora agruparemos “Calle” y “VALORXM2”
+
+agrupar <- group_by(departamentos_en_venta, CALLE)
+resumir <- summarise(agrupar, U_S_M2=mean(U_S_M2))
+head(resumir)
+
+concatenar <-departamentos_en_venta %>%
+  filter(TERRAZA=="BALCON")%>%
+  select(U_S_M2, CALLE, COMUNA)%>%
+  group_by(COMUNA)%>%
+  summarise(Max_COMUNA=max(U_S_M2),Min_COMUNA=min(U_S_M2))
+head(concatenar)
+
+
+
+
+
+
 
 
 ```{r}
