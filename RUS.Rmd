@@ -49,7 +49,7 @@ RUS_grupo <- RUS %>%
 ```{r}
 #lo guardamos para no tener que agruparlo nuevamente si corremos el código
 
-#write.csv(RUS_grupo,"data/rus-procesado/RUS-grupo.csv")
+write.csv(RUS_grupo,"data/rus-procesado/RUS-grupo.csv")
 ```
 
 ```{r}
