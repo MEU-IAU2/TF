@@ -288,6 +288,8 @@ Terrenos_2019 <- read_sf("data/terrenos-2019/Terrenos_venta_2019.shp")
 Terrenos_2019 <- st_transform(Terrenos_2019, crs=4326) 
 ```
 
+
+
 ```{r}
 summary(Terrenos_2019)
 ```
@@ -301,61 +303,115 @@ head(Terrenos_2019)
 
 
 ```{r}
-Terrenos_2019_seleccion <- select(Terrenos_2019, LATITUD, LONGITUD, M2TOTAL, PRECIOUSD, BARRIOS, COMUNA, geometry) %>%
-  group_by(BARRIOS)%>%
-summarise (PROMEDIOM2 = mean(PRECIOUSD))
+Terrenos_2019_seleccion <- select(Terrenos_2019, LATITUD, LONGITUD, M2TOTAL, PRECIOUSD, BARRIOS, COMUNA, geometry) 
+  
 ```
-
 
 ```{r}
 hex4 <- Terrenos_2019_seleccion %>% st_join(hex)
 ```
 
+```{r}
+hex5 <- select(hex4, LATITUD, LONGITUD, M2TOTAL, PRECIOUSD, geometry, index)%>%
+group_by(index)%>%
+summarise (PROMEDIOM2 = mean(PRECIOUSD))
+```
 
 ```{r}
 ggplot()+
-  geom_sf(data=Terrenos_2019_seleccion, aes(fill=BARRIOS), color=NA)+
-  geom_sf(data = barrios_CABA, fill=NA, size=.8) + 
-  geom_sf(data=hex4, fill=NA, color="white")+
+  geom_sf(data=hex, fill="grey85") +
+  geom_sf(data=hex5, aes(color=index))+
+  scale_color_viridis_c()+
   theme_void()
 ```
+```{r}
+hex6 <- hex5 %>% 
+  group_by(index) %>% #agrupamos por ID de hexágono
+  as.data.frame() %>%
+  select(-geometry)
+```
+
+```{r}
+hex_promedio_2019<- left_join(hex6, hex, by="index") #union espacial con la grilla original
+```
+
+```{r}
+ggplot()+
+  geom_sf(data=hex_promedio_2019, aes(fill=PROMEDIOM2, geometry=grid)) +
+  geom_sf(data=barrios_CABA, fill="NA")+
+  scale_fill_viridis_c() +
+  theme_void()
+```
+
+### TERRENOS 2020
+
+Para facilitar el trabajo en equipo, este set de datos fue procesado en TERRENOS 2020.Rmd, dentro del mismo repositorio. Resume la venta de terrenos en CABA en el año 2020
 
 
 
 ```{r}
-
+Terrenos_2020 <- read_sf("data/terrenos-2020/210517_Terrenos_Vta_Anual2020.shp") 
 ```
 
 
+```{r}
+Terrenos_2020 <- st_transform(Terrenos_2020, crs=4326) 
+```
 
-Ahora agruparemos “Calle” y “VALORXM2”
-
-agrupar <- group_by(departamentos_en_venta, CALLE)
-resumir <- summarise(agrupar, U_S_M2=mean(U_S_M2))
-head(resumir)
-
-concatenar <-departamentos_en_venta %>%
-  filter(TERRAZA=="BALCON")%>%
-  select(U_S_M2, CALLE, COMUNA)%>%
-  group_by(COMUNA)%>%
-  summarise(Max_COMUNA=max(U_S_M2),Min_COMUNA=min(U_S_M2))
-head(concatenar)
+```{r}
+summary(Terrenos_2020)
+```
 
 
+```{r}
+dim(Terrenos_2020)
+```
+```{r}
+head(Terrenos_2020)
+```
 
+```{r}
+Terrenos_2020_seleccion <- select(Terrenos_2020, PRECIOUSD, BARRIO, COMUNA_, geometry) 
+```
 
+```{r}
+hex6 <- Terrenos_2020_seleccion %>% st_join(hex)
+```
 
+```{r}
+hex7 <- select(hex6, geometry,  PRECIOUSD, BARRIO, COMUNA_,index)%>%
+group_by(index)%>%
+summarise (PROMEDIOM2 = mean(PRECIOUSD))
+```
 
 
 
 ```{r}
 ggplot()+
-  geom_sf(data=Terrenos_2019, aes(fill=PRECIOUSD), color=NA)+
-  geom_sf(data = barrios_CABA, fill=NA, size=.8) + 
-  geom_sf(data=hex, fill=NA, color="white")+
-  scale_fill_viridis_c()+
+  geom_sf(data=hex, fill="grey85") +
+  geom_sf(data=hex7, aes(color=index))+
+  scale_color_viridis_c()+
   theme_void()
 ```
 
+```{r}
+hex8 <- hex7 %>% 
+  group_by(index) %>% #agrupamos por ID de hexágono
+  as.data.frame() %>%
+  select(-geometry)
+```
 
+```{r}
+hex_promedio_2020<- left_join(hex8, hex, by="index") #union espacial con la grilla original
+```
+
+```{r}
+ggplot()+
+  geom_sf(data=hex_promedio_2020, aes(fill=PROMEDIOM2, geometry=grid)) +
+  geom_sf(data=barrios_CABA, fill="NA")+
+  scale_fill_viridis_c() +
+  theme_void()
+```
+
+##COMPARAR AMBOS PROMEDIOS POR HEXÁGONO VIENDO CUANTO VARIO CADA UNO, A FIN DE IDENTIFICAR LOS QUE MAS VARIARON Y DONDE SE ENCUENTRAN.
 
