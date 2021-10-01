@@ -105,6 +105,7 @@ library(annotater) # Annotate Package Load Calls, [github::luisDVA/annotater] v0
 
 ## Desarrollo
 
+
 ### Creación de hexágonos
 
 En primer lugar vamos a descargar los barrios de CABA
@@ -124,7 +125,8 @@ grid <- st_sf(index = 1:length(lengths(grid)), grid) %>%  #le agregamos un índi
   st_transform(crs = 4326) #mismo crs
 ```
 
-Descargaremos el límite de CABA para hacer la intersercción con la grilla
+
+Descargamos el polígono del ímite de CABA para hacer la intersercción con la grilla
 
 ```{r}
 bbox_CABA_limite <- getbb("Ciudad Autónoma de Buenos Aires, Argentina", format_out = "sf_polygon")
@@ -132,23 +134,29 @@ bbox_CABA_limite <- bbox_CABA_limite$multipolygon
 ```
 
 ```{r}
-hex <- st_intersection(grid, bbox_CABA_limite)
+hex <- st_intersection (bbox_CABA_limite, grid) %>% 
+   st_difference()
 ```
+
 Veamos cómo se ve: 
 
 ```{r}
 ggplot()+
   geom_sf(data = barrios_CABA, fill="grey85", size=.8) + 
   geom_sf(data=hex, fill=NA, color="grey45")+
+   labs(title="Gilla hexagonal",
+        subtitle="Ciudad Autónoma de Buenos Aires")+
   theme_void()
 ```
 
-Muy bien, esta será nuestra Unidad de Análisis a partide ahora. 
+Muy bien! 
+Esta será nuestra Unidad de Análisis a partir de ahora. 
+
 
 
 ### Densidad poblacional
 
-Vamos a cargar la info de radios censales de GCABA
+Vamos a cargar la información de radios censales provista por el GCABA
 
 ```{r}
 radios <- st_read("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/informacion-censal-por-radio/caba_radios_censales.geojson") %>% 
@@ -157,14 +165,17 @@ radios <- st_read("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/informa
   mutate(AREA=(as.integer(st_area(.)))*0.0001) %>% #calculamos el área y la convertimos en Ha
   mutate(DENSIDAD=(as.integer(TOTAL_POB))/AREA) #calculamos la densidad poblacional de cada radio censal (hab/Ha)
 ```
-Veamos cómo queda sobre la grilla... en primer lugar, sólo superponiendo: 
+Veamos cómo queda sobre la grilla... en primer lugar, sólo superponiéndola: 
 
 ```{r}
 ggplot()+
   geom_sf(data=radios, aes(fill=DENSIDAD), color=NA)+
-  geom_sf(data = barrios_CABA, fill=NA, size=.8) + 
   geom_sf(data=hex, fill=NA, color="white")+
   scale_fill_viridis_c()+
+  labs(title = "Densidad Poblacional + grilla hexagonal",
+      subtitle = "Ciudad Autónoma de Buenos Aires",
+      fill="hab/Ha",
+      caption = "Fuente: BA Data")+
   theme_void()
 ```
 
@@ -182,6 +193,10 @@ ggplot()+
   geom_sf(data=hex, fill="grey85") +
   geom_sf(data=hex2, aes(color=DENSIDAD))+
   scale_color_viridis_c()+
+  labs(title = "Densidad poblacional por centroide de radios censales",
+      subtitle = "Ciudad Autónoma de Buenos Aires",
+      color= "hab/Ha",
+      caption = "Fuente: BA Data")+  
   theme_void()
 ```
 
@@ -201,7 +216,8 @@ hex_densidad <- left_join(hex3, hex, by="index") #union espacial con la grilla o
 ```
 
 
-Entendiendo que un hexágonos con muy pocos valores puede estar sesgados por valores poco representativos, vamos a determinar un umbral. En el caso de que el hexágono no registra menos valores que dicho límite inferior, no lo tenderemos en cuenta para nuestra correlación.
+Entendiendo que los hexágonos con muy pocos valores puede estar sesgados por valores poco representativos, vamos a determinar un umbral. En el caso de que el hexágono registre menos valores que dicho límite inferior, lo diferenciaremos para nuestra correlación.
+
 
 ```{r}
 umbral <- 4
@@ -210,9 +226,13 @@ umbral <- 4
 ```{r}
 ggplot()+
   geom_sf(data=barrios_CABA, fill="grey85") +
-  geom_sf(data=hex_densidad, aes(fill=PROM_DENS, geometry = grid))+
-  geom_sf(data=hex_densidad %>% filter(INSTANCIAS<umbral), aes(geometry = grid), fill="red")+
+  geom_sf(data=hex_densidad, aes(fill=PROM_DENS, geometry = geometry))+
+  geom_sf(data=hex_densidad %>% filter(INSTANCIAS<umbral), aes(geometry=geometry), color="red", alpha=.2)+
   scale_fill_viridis_c() +
+  labs(title = "Densidad poblacional por hexágono",
+      subtitle = "Ciudad Autónoma de Buenos Aires",
+      fill= "hab/Ha",
+      caption = "Fuente: BA Data")+  
   theme_void()
 ```
  
@@ -226,11 +246,6 @@ Resume la cantidad de usos que regista cada parcela.
 ```{r}
 RUS <- st_read("data/rus-procesado/RUS-grupo-geo.csv")
 ```
-```{r}
-#RUS_grupo <- RUS %>% 
- # group_by(SMP) %>% 
- # summarise(CANTIDAD=n())
-```
 
 Convertimos el set de datos de usos en datos geográfico
 
@@ -239,18 +254,21 @@ RUS_geo <- RUS %>%
   st_as_sf(coords = c("X", "Y"), crs = 4326)
 ```
 
+Lo unimos a nuestra grilla. 
+
 ```{r}
 hex2 <- RUS_geo %>% st_join(hex)
 ```
+
+Ahora sí vamos agregar los valores a los hexágonos:
 
 ```{r}
 hex3 <- hex2 %>% 
   as.data.frame() %>% 
   select(-geometry) %>% 
-  group_by(index, CANTIDAD) %>% #agrupamos por ID de hexágono
-  summarise(CANTIDAD_USOS=sum(as.numeric(CANTIDAD)), INSTANCIAS=n()) %>% 
-  mutate(DIVERSIDAD_USOS=CANTIDAD_USOS/INSTANCIAS) %>% 
-  select(-CANTIDAD, -INSTANCIAS)
+  group_by(index) %>% #agrupamos por ID de hexágono
+  summarise(CANTIDAD_USOS=sum(as.integer(CANTIDAD)), INSTANCIAS=n()) %>% 
+  mutate(DIVERSIDAD_USOS=CANTIDAD_USOS/INSTANCIAS)
 
   #resumimos por cantidad de usos por hexágono
 ```
@@ -259,26 +277,26 @@ hex3 <- hex2 %>%
 hex_densidad_usos <- left_join(hex3, hex_densidad, by="index") #union espacial con la grilla que ya tiene la densidad
 ```
 
+
+Veamos nuestra grilla con la diversidad de usos:
+
 ```{r}
 quiebres <- c(0,0.2,0.4,0.6,0.8,1)
 
 
 ggplot()+
   geom_sf(data=barrios_CABA, fill="grey85") +
-  geom_sf(data=hex_densidad_usos, aes(fill=(cut(DIVERSIDAD_USOS, breaks = seq(0, 400, 50))), geometry = grid))+
-  scale_fill_viridis_d() +
-  theme_void()+
-  labs(title = "Diversidad de usos",
+  geom_sf(data=hex_densidad_usos, aes(fill=DIVERSIDAD_USOS, geometry = geometry))+
+  scale_fill_viridis_c() +
+  labs(title = "Diversidad de usos por hexágono",
        subtitle = "Ciudad Autónoma de Buenos Aires",
-       fill = " Diversidad de usos/\n\ cantidad de parcelas",
-       caption = "Fuente: GCBA data")
+       fill = " Usos diversos/\n\ cantidad de parcelas",
+       caption = "Fuente: GCBA data")+
+  theme_void()
 ```
 
 
-### TERRENOS 2019
-
-Para facilitar el trabajo en equipo, este set de datos fue procesado en TERRENOS 2019.Rmd, dentro del mismo repositorio. Resume la venta de terrenos en CABA en el año 2019
-
+### Terrenos 2019
 
 
 ```{r}
@@ -286,7 +304,6 @@ Terrenos_2019 <- read_sf("data/terrenos-2019/Terrenos_venta_2019.shp")
 
 Terrenos_2019 <- st_transform(Terrenos_2019, crs=4326) 
 ```
-
 
 
 ```{r}
@@ -302,8 +319,7 @@ head(Terrenos_2019)
 
 
 ```{r}
-Terrenos_2019_seleccion <- select(Terrenos_2019, LATITUD, LONGITUD, M2TOTAL, PRECIOUSD, BARRIOS, COMUNA, geometry) 
-  
+Terrenos_2019_seleccion <- select(Terrenos_2019, LATITUD, LONGITUD, M2TOTAL, PRECIOUSD, PRECIOUSDM, BARRIOS, COMUNA, geometry) 
 ```
 
 ```{r}
@@ -311,47 +327,52 @@ hex2 <- Terrenos_2019_seleccion %>% st_join(hex)
 ```
 
 ```{r}
-hex2 <- select(hex2, LATITUD, LONGITUD, M2TOTAL, PRECIOUSD, geometry, index)%>%
-group_by(index)%>%
-summarise (PROMEDIOM2 = mean(PRECIOUSD))
+hex2 <- hex2 %>% 
+  select(PRECIOUSDM, M2TOTAL, PRECIOUSD, geometry, index) %>%
+  group_by(index) %>%
+  summarise (USD_M2_2019 = mean(PRECIOUSDM), INSTANCIAS_2019=n())
 ```
 
 ```{r}
 ggplot()+
   geom_sf(data=hex, fill="grey85") +
-  geom_sf(data=hex2, aes(color=index))+
+  geom_sf(data=hex2, aes(color=USD_M2_2019))+
+  geom_sf(data=hex2 %>% filter(INSTANCIAS_2019<umbral), color="red")+
   scale_color_viridis_c()+
   theme_void()
 ```
 ```{r}
 hex3 <- hex2 %>% 
-  group_by(index) %>% #agrupamos por ID de hexágono
+  group_by(index, INSTANCIAS_2019) %>% #agrupamos por ID de hexágono
+  summarise(USD_M2_2019=mean(USD_M2_2019)) %>% 
   as.data.frame() %>%
   select(-geometry)
 ```
 
 ```{r}
-hex_promedio_2019<- left_join(hex3, hex, by="index") #union espacial con la grilla original
+hex_promedio_2019<- left_join(hex, hex3, , by="index") #union espacial con la grilla original
 ```
 
 ```{r}
 ggplot()+
   geom_sf(data=hex, fill="grey85") +
-  geom_sf(data=hex_promedio_2019, aes(fill=PROMEDIOM2, geometry=grid)) +
+  geom_sf(data=hex_promedio_2019, aes(fill=USD_M2_2019, geometry=geometry)) +
+  geom_sf(data=hex_promedio_2019 %>% filter(INSTANCIAS_2019<umbral), aes(geometry=geometry), color="red", alpha=.2)+
   scale_fill_viridis_c() +
+  labs(title = "Precio promedio de los terrenos en venta por hexágonos",
+       subtitle = "Ciudad Autónoma de Buenos Aires, 2019",
+       fill = "USD/m2",
+       caption = "Fuente: GCBA data")+  
   theme_void()
 ```
 
-### TERRENOS 2020
 
-Para facilitar el trabajo en equipo, este set de datos fue procesado en TERRENOS 2020.Rmd, dentro del mismo repositorio. Resume la venta de terrenos en CABA en el año 2020
-
+### Terrenos 2020
 
 
 ```{r}
 Terrenos_2020 <- read_sf("data/terrenos-2020/210517_Terrenos_Vta_Anual2020.shp") 
 ```
-
 
 ```{r}
 Terrenos_2020 <- st_transform(Terrenos_2020, crs=4326) 
@@ -370,7 +391,7 @@ head(Terrenos_2020)
 ```
 
 ```{r}
-Terrenos_2020_seleccion <- select(Terrenos_2020, PRECIOUSD, BARRIO, COMUNA_, geometry) 
+Terrenos_2020_seleccion <- select(Terrenos_2020, PRECIOUSD, DOLARM2, BARRIO, COMUNA_, geometry) 
 ```
 
 ```{r}
@@ -378,24 +399,24 @@ hex2 <- Terrenos_2020_seleccion %>% st_join(hex)
 ```
 
 ```{r}
-hex2 <- select(hex2, geometry,  PRECIOUSD, BARRIO, COMUNA_,index)%>%
-group_by(index)%>%
-summarise (PROMEDIOM2 = mean(PRECIOUSD))
+hex2 <- select(hex2, geometry, DOLARM2, PRECIOUSD, BARRIO, COMUNA_,index)%>%
+  group_by(index)%>%
+  summarise (USD_M2_2020 = mean(DOLARM2), INSTANCIAS_2020=n())
 ```
-
-
 
 ```{r}
 ggplot()+
   geom_sf(data=hex, fill="grey85") +
-  geom_sf(data=hex2, aes(color=index))+
+  geom_sf(data=hex2, aes(color=USD_M2_2020))+
+  geom_sf(data=hex2 %>% filter(INSTANCIAS_2020<umbral), color="red")+
   scale_color_viridis_c()+
   theme_void()
 ```
 
 ```{r}
 hex3 <- hex2 %>% 
-  group_by(index) %>% #agrupamos por ID de hexágono
+  group_by(index, INSTANCIAS_2020) %>% #agrupamos por ID de hexágono
+  summarise(USD_M2_2020=mean(USD_M2_2020)) %>% 
   as.data.frame() %>%
   select(-geometry)
 ```
@@ -407,11 +428,59 @@ hex_promedio_2020<- left_join(hex3, hex, by="index") #union espacial con la gril
 ```{r}
 ggplot()+
   geom_sf(data=hex, fill="grey85") +
-  geom_sf(data=hex_promedio_2020, aes(fill=PROMEDIOM2, geometry=grid)) +
+  geom_sf(data=hex_promedio_2020, aes(fill=USD_M2_2020, geometry=geometry)) +
+  geom_sf(data=hex_promedio_2020 %>% filter(INSTANCIAS_2020<umbral), aes(geometry=geometry), color="red", alpha=.2)+
   scale_fill_viridis_c() +
+  labs(title = "Precio promedio de los terrenos en venta por hexágonos",
+       subtitle = "Ciudad Autónoma de Buenos Aires, 2020",
+       fill = "USD/m2",
+       caption = "Fuente: GCBA data")+  
   theme_void()
 ```
 
-##COMPARAR AMBOS PROMEDIOS POR HEXÁGONO VIENDO CUANTO VARIO CADA UNO, A FIN DE IDENTIFICAR LOS QUE MAS VARIARON Y DONDE SE ENCUENTRAN.
+
+### Variación porcentual interanual
+
+
+Vamos a procedes a unir a través de nuestro ID de hexágono (index): 
+    
+    - Densidades poblacionales
+    - Diversidad de uso del suelo
+    - USD/m2 2019 y 2020 para el cálculo de la variación interanual
+    
+
+```{r}
+hex_promedio_2019 <- hex_promedio_2019 %>% 
+  as.data.frame() %>% 
+  select(index, USD_M2_2019, INSTANCIAS_2019)
+
+hex_promedio_2020 <- hex_promedio_2020 %>% 
+  as.data.frame() %>% 
+  select(index, USD_M2_2020, INSTANCIAS_2020)
+  
+hexagonos <- hex_densidad_usos %>% 
+  left_join(hex_promedio_2019, by="index") %>% 
+  left_join(hex_promedio_2020, by="index") %>% 
+  mutate(VARIACION=USD_M2_2020/USD_M2_2019*100)
+```
+
+```{r}
+ggplot(hexagonos, aes(x=PROM_DENS, y=VARIACION)) +
+  geom_point()+
+  geom_smooth(method=lm,  linetype="dashed",
+             color="darkred", fill="blue")+
+  ylim(-50, 300)+
+  theme_minimal()
+```
+
+```{r}
+ggplot(hexagonos, aes(x=DIVERSIDAD_USOS, y=VARIACION)) +
+  geom_point()+
+  geom_smooth(method=lm,  linetype="dashed",
+             color="darkred", fill="blue")+
+  ylim(-50, 300)+
+  theme_minimal()
+```
+
 
 
