@@ -1,9 +1,24 @@
 ---
-title: "VARIACIONES COVID CABA"
+title: "VARIACIONES COVID-19 CABA"
 subtitle: "INSTRUMENTOS DE ANALISIS URBANOS II"
 output: html_notebook
 --- 
+**TRABAJO FINAL - INSTRUMETOS DE ANALISIS URBANOS II**
+ *VARIACIONES COVID-19 CABA*
+ 
+ **Profesor: Juan Pablo Ruiz Nicolini**
+ **Alumnos: Luis Tisocco, Ignacio Suarez de la Rosa y Yanina Zambiazzo.**
+ 
+*En el siguiente trabajo analizaremos las variaciones reflejadas tras la pandemia COVID-19 en los precios de venta de terrenos durante el periodo 2019-2020, relacionandolo con la densidad poblacional y usos de suelos de la Ciudad de Buenos Aires.*
+*¿Explica la variación de precios la Densidad Poblacional y Usos de Suelo?*
 
+
+*Para ello, en el transcurso del trabajo cargaremos los dataset de Terrenos 2019 y 2020, la informacion de radios censales provista por el GCABA y los datos del Relevamiento de Uso del Suelo del GCABA.*
+
+
+## Desarrollo Trabajo Final
+
+**1- Comenzaremos cargando las librerías**
 
 ```{r message=FALSE, warning=FALSE}
 library(sf) # Simple Features for R, CRAN v1.0-1
@@ -13,22 +28,17 @@ library(osmdata) # Import 'OpenStreetMap' Data as Simple Features or Spatial Obj
 
 ```
 
-## Desarrollo
+**2- Crearemos una grilla hexagonal para analizar las variaciones**
 
-### Creación de hexágonos
 
-En primer lugar vamos a descargar los barrios de CABA
+#Previamente vamos a descargar los barrios de CABA.
 
-¿Explica la variacion de precios la densidad y usos de Suelo?
-Para ello, trabajaremos los dataset 2019 y 2020 para ver las variaciones 
 
 ```{r}
 barrios_CABA <- st_read("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/barrios/barrios.geojson") %>% 
   select() %>% 
   st_transform(crs = 4326)
 ```
-
-Creamos la grilla hexagonal
 
 ```{r}
 grid <- st_make_grid(barrios_CABA, cellsize = .01, what = "polygons", square = FALSE)
@@ -38,7 +48,7 @@ grid <- st_sf(index = 1:length(lengths(grid)), grid) %>%  #le agregamos un índi
 ```
 
 
-Descargamos el polígono del límite de CABA para hacer la intersercción con la grilla
+#Descargamos el polígono del límite de CABA para hacer la intersercción con la grilla.
 
 ```{r}
 bbox_CABA_limite <- getbb("Ciudad Autónoma de Buenos Aires, Argentina", format_out = "sf_polygon")
@@ -50,7 +60,7 @@ hex <- st_intersection (bbox_CABA_limite, grid) %>%
    st_difference()
 ```
 
-Veamos cómo se ve: 
+#Veamos cómo se ve: 
 
 ```{r}
 ggplot()+
@@ -62,13 +72,15 @@ ggplot()+
   theme_void()
 ```
 
-Muy bien! 
-Esta será nuestra Unidad de Análisis a partir de ahora. 
+#Esta será nuestra Unidad de Análisis a partir de ahora. 
 
 
-*### Densidad poblacional*
+**3- A continuación trabajaremos: **
 
-Vamos a cargar la información de radios censales provista por el GCABA
+__A- Densidad poblacional__
+
+
+#Vamos a cargar la información de radios censales provista por el GCABA.
 
 ```{r}
 radios <- st_read("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/informacion-censal-por-radio/caba_radios_censales.geojson") %>% 
@@ -77,7 +89,7 @@ radios <- st_read("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/informa
   mutate(AREA=(as.integer(st_area(.)))*0.0001) %>% #calculamos el área y la convertimos en Ha
   mutate(DENSIDAD=(as.integer(TOTAL_POB))/AREA) #calculamos la densidad poblacional de cada radio censal (hab/Ha)
 ```
-Veamos cómo queda sobre la grilla... en primer lugar, sólo superponiéndola: 
+#Veamos cómo queda sobre la grilla... en primer lugar, sólo superponiéndola: 
 
 ```{r}
 ggplot()+
@@ -91,14 +103,14 @@ ggplot()+
   theme_void()
 ```
 
-Ahora sí, sin sobreescribir la grilla haremos el join espacial de los centroides de los radios a la grilla (UA). 
-Es decir, todos los centroides de los radios censales que caigan dentro del mismo hexágono, formarán parte del mismo.
+#Ahora sí, sin sobreescribir la grilla haremos el join espacial de los centroides de los radios a la grilla (UA). 
+#Es decir, todos los centroides de los radios censales que caigan dentro del mismo hexágono, formarán parte del mismo.
 
 ```{r}
 hex2 <- st_centroid(radios) %>% st_join(hex)
 ```
-Hasta acá tenemos la info asociada en forma de puntos. 
-Veámosla:
+#Hasta acá tenemos la info asociada en forma de puntos. 
+#Veámosla:
 
 ```{r}
 ggplot()+
@@ -112,7 +124,7 @@ ggplot()+
   theme_void()
 ```
 
-Vamos a hacer que el hexágono tomando como valor el promedio de todos los valores incolucrados.
+#Vamos a hacer que el hexágono tome como valor el promedio de todos los valores incolucrados.
 
 ```{r}
 hex3 <- hex2 %>% 
@@ -128,7 +140,7 @@ hex_densidad <- left_join(hex3, hex, by="index") #union espacial con la grilla o
 ```
 
 
-Entendiendo que los hexágonos con muy pocos valores puede estar sesgados por valores poco representativos, vamos a determinar un umbral. En el caso de que el hexágono registre menos valores que dicho límite inferior, lo diferenciaremos para nuestra correlación.
+#Entendiendo que los hexágonos con muy pocos valores pueden estar sesgados por valores poco representativos, vamos a determinar un umbral. En el caso de que el hexágono registre menos valores que dicho límite inferior, lo diferenciaremos para nuestra correlación.
 
 
 ```{r}
@@ -147,31 +159,34 @@ ggplot()+
       caption = "Fuente: BA Data")+  
   theme_void()
 ```
-En este grafico podemos observar como crece la densidad poblacional hacia los ejes principales. Por otro lado, podemos ver un gradiente en descenso hacia el borde de Gral. Paz. A su vez, en las areas centrales podemos ver reflejado la baja densidad poblacional. 
- 
-### RUS 
+*En este gráfico podemos observar como crece la densidad poblacional hacia los ejes principales. Por otro lado, podemos ver un gradiente en descenso hacia el borde de Gral. Paz y en las areas centrales como baja la densidad poblacional.*
 
-Para facilitar el trabajo en equipo, este set de datos fue procesado en RUS.Rmd, dentro del mismo repositorio. 
-Resume la cantidad de usos que regista cada parcela. 
+
+__B- RUS __
+ 
+#Relevamiento de usos de suelo. 
+
+#Para facilitar el trabajo en equipo, este set de datos fue procesado en RUS.Rmd, dentro del mismo repositorio. 
+#Resume la cantidad de usos que regista cada parcela. 
  
 ```{r}
 RUS <- st_read("data/rus-procesado/RUS-grupo-geo.csv")
 ```
 
-Convertimos el set de datos de usos en datos geográfico
+#Ahora convertimos el set de datos de usos en datos geográfico.
 
 ```{r}
 RUS_geo <- RUS %>% 
   st_as_sf(coords = c("X", "Y"), crs = 4326)
 ```
 
-Lo unimos a nuestra grilla. 
+#Lo unimos a nuestra grilla. 
 
 ```{r}
 hex2 <- RUS_geo %>% st_join(hex)
 ```
 
-Ahora sí vamos agregar los valores a los hexágonos:
+#Ahora sí vamos agregar los valores a los hexágonos:
 
 ```{r}
 hex3 <- hex2 %>% 
@@ -189,7 +204,7 @@ hex_densidad_usos <- left_join(hex3, hex_densidad, by="index") #union espacial c
 ```
 
 
-Veamos nuestra grilla con la diversidad de usos:
+#Veamos nuestra grilla con la diversidad de usos:
 
 ```{r}
 quiebres <- c(0,0.2,0.4,0.6,0.8,1)
@@ -205,11 +220,13 @@ ggplot()+
        caption = "Fuente: GCBA data")+
   theme_void()
 ```
-En este grafico se evidencia en los ejes principales y en barrios como Recoleta y Palermo mayor diversidad de usos.
-
-### Terrenos 2019
+*En este gráfico se evidencia en los ejes principales y en barrios como Recoleta y Palermo mayor Diversidad de Usos.*
 
 
+__c- TERRENOS EN VENTA 2019 __
+
+
+#Vamos a cargar la información de radios censales provista por el GCABA.
 
 ```{r}
 Terrenos_2019 <- read_sf("data/terrenos-2019/Terrenos_venta_2019.shp") 
