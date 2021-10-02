@@ -387,7 +387,7 @@ ggplot()+
   geom_sf(data=hexagonos %>% filter(VARIACION<0), aes(geometry=geometry), fill="red", alpha=.5) +
   scale_fill_viridis_c() +
   labs(title = " Variación del precio promedio de \n los terrenos en venta por hexágonos",
-       subtitle = "Ciudad Autónoma de Buenos Aires, 2020",
+       subtitle = "Ciudad Autónoma de Buenos Aires, 2019-2020",
        caption = "Fuente: GCBA data")+  
   theme_void()
 ```
@@ -399,6 +399,11 @@ ggplot(hexagonos, aes(x=PROM_DENS, y=VARIACION)) +
   geom_point()+
   geom_smooth(method=lm,  linetype="dashed",
              color="darkred")+
+  labs (title = "Correlacion entre la Densidad y Variacion",
+       subtitle = "Ciudad Autónoma de Buenos Aires, 2019-2020",
+       caption ="Fuente: GCBA data", 
+       x="Densidad Promedio por Hexagono",
+       y="Variacion del precio")+
   theme_minimal()
 ```
 
@@ -409,7 +414,11 @@ ggplot(hexagonos, aes(x=DIVERSIDAD_USOS, y=VARIACION)) +
   geom_point()+
   geom_smooth(method=lm,  linetype="dashed",
              color="darkred")+
- # ylim(-50, 300)+
+   labs (title = "Correlacion entre la Diversidad de Usos y Variacion",
+       subtitle = "Ciudad Autónoma de Buenos Aires, 2019-2020",
+       caption ="Fuente: GCBA data", 
+       x="Diversidad de Usos",
+       y="Variacion del precio")+
   theme_minimal()
 ```
 
