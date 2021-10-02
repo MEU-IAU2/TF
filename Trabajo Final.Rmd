@@ -1,114 +1,26 @@
 ---
-title: "R Notebook"
+title: "VARIACIONES COVID CABA"
+subtitle: "INSTRUMENTOS DE ANALISIS URBANOS II"
 output: html_notebook
 --- 
 
-PROPUESTA:
-DESAGREGAR LA VARIACIÓN DE PRECIOS DE LAS PROPIEDADES INMOBILIARIAS DURANTE LA PANDEMIA EN UNA UNIDAD DE ANÁLISIS VIRTUAL (MALLA HEXAGONAL)
 
-Construir una malla hexagonal que refleje: 
-    1- promedio m2 en venta 01/03/2020 - 31/03/2020
-    2- promedio m2 en venta 01/03/2021 - 31/03/2021
-  
-  Analizar la variación de precios.
-  ¿Existe algún patrón espacial claro? 
-
-
-Incorporar alguna otra variable que pueda llegar a explicarlo, como: 
-    - distancia al centro
-    - espacios verdes
-    - densidad poblacional
-    
-¿Hay algún tipo de correlación? Estimar 
-
-
-
-LIBRERIAS
-vroom (cargar datos rapidos)
-annotator (te da que hacer cada library)
-skimr (analisis estadistico rapido) ---> skimr::skim(df)
-
-
-
-Pasos principales para esta parte:
-
-A) CREACIÓN DE HEXÁGONOS
-  - explicación creación hexágonos (Unidad de análisis virtual)
-  - Creación de la malla
-
-
-B) DENSIDAD: 
-  - Importar radios censales 
-  - Graficar por barrios
-  - Disolver por hexágonos
-
-
-C) USOS (SI ALCANZA EL TIEMPO): 
-  - Importar RUS (releva. usos del suelo)
-  - Agrupar por 5/6 categorías
-  - calcular centroides de las parcelas 
-  - join espacial del centroide a la malla hexagonal
-  - cual es el uso predominante del hexágono?
-  
-  
-D) DATOS TERRENOS EN VENTA (BUENOS AIRES DATA)
-
-  DATASET TERRENOS EN VENTA 2020 (TODO EL AÑO)
-  DATASET TERRENOS EN VENTA (POSPANDEMIA: 2°, 3° Y 4° TRIMESTRE 2021)
-  
-  - exploración de datos (skim) + grafiquitos que pinten
-  - limpieza de datos. Eliminar outliers (CREAR FUNCION PARA FILTRAR OUTLIERS?)
-  
-  Q1-1.5*IQR
-  Q3+1.5*IQR
-  
-Q1=quantile(df$PRECIO, c(.25))
-Q3=quantile(df$PRECIO, c(.75))
-IQR= Q3-Q1
-
-lim_inf=Q1-1.5*IQR
-lim_sup=Q3+1.5*IQR
-  
-df_filter <- filter(df, PRECIO?? >lim_inf & precio_m2 < lim_sup)
-
-Join espacial con HEXAGONOS 
-
-
-crear objeto umbral:
-
-umbral <- 4     
-OJO: DETERMINAR UMBRAL. HEXÁGONOS CON MENOS INSTANCIAS QUE EL UMBRAL SE ELIMINAN/NO SE TIENEN EN CUENTA POR SESGO
-
-Una vez que tenemos los hexágonos con 2 columnas: promedio Marzo 2020 y promedio Marzo 2021. 
-
-mutate (VARIACION=marzo2021/marzo2020*100) 
-
-GRAFICAR HEXÁGONOS CON PRECIOS 2020 Y 2021
-GRAFICAR HEXÁGONOS CON VARIACIÓN 
-
-INTERPRETAR
-
-
-E) SI SOBRA TIEMPO, VER CORRELACIÓN. .corr (?)
-
- 
-  
-  
 ```{r message=FALSE, warning=FALSE}
 library(sf) # Simple Features for R, CRAN v1.0-1
 library(tidyverse) # Easily Install and Load the 'Tidyverse', CRAN v1.3.1
 library(ggplot2) # Create Elegant Data Visualisations Using the Grammar of Graphics, CRAN v3.3.5
-library(skimr) # Compact and Flexible Summaries of Data, CRAN v2.1.3
 library(osmdata) # Import 'OpenStreetMap' Data as Simple Features or Spatial Objects, CRAN v0.1.5 
-library(annotater) # Annotate Package Load Calls, [github::luisDVA/annotater] v0.1.3
+
 ```
 
 ## Desarrollo
 
-
 ### Creación de hexágonos
 
 En primer lugar vamos a descargar los barrios de CABA
+
+¿Explica la variacion de precios la densidad y usos de Suelo?
+Para ello, trabajaremos los dataset 2019 y 2020 para ver las variaciones 
 
 ```{r}
 barrios_CABA <- st_read("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/barrios/barrios.geojson") %>% 
@@ -126,7 +38,7 @@ grid <- st_sf(index = 1:length(lengths(grid)), grid) %>%  #le agregamos un índi
 ```
 
 
-Descargamos el polígono del ímite de CABA para hacer la intersercción con la grilla
+Descargamos el polígono del límite de CABA para hacer la intersercción con la grilla
 
 ```{r}
 bbox_CABA_limite <- getbb("Ciudad Autónoma de Buenos Aires, Argentina", format_out = "sf_polygon")
@@ -145,7 +57,8 @@ ggplot()+
   geom_sf(data = barrios_CABA, fill="grey85", size=.8) + 
   geom_sf(data=hex, fill=NA, color="grey45")+
    labs(title="Gilla hexagonal",
-        subtitle="Ciudad Autónoma de Buenos Aires")+
+        subtitle="Ciudad Autónoma de Buenos Aires",
+         caption = "Fuente: BA Data")+
   theme_void()
 ```
 
@@ -153,8 +66,7 @@ Muy bien!
 Esta será nuestra Unidad de Análisis a partir de ahora. 
 
 
-
-### Densidad poblacional
+*### Densidad poblacional*
 
 Vamos a cargar la información de radios censales provista por el GCABA
 
@@ -200,7 +112,7 @@ ggplot()+
   theme_void()
 ```
 
-Vamos a hacer que el hexágono tome como valor el promedio de todos los valores incolucrados.
+Vamos a hacer que el hexágono tomando como valor el promedio de todos los valores incolucrados.
 
 ```{r}
 hex3 <- hex2 %>% 
@@ -235,8 +147,7 @@ ggplot()+
       caption = "Fuente: BA Data")+  
   theme_void()
 ```
- 
- 
+En este grafico podemos observar como crece la densidad poblacional hacia los ejes principales. Por otro lado, podemos ver un gradiente en descenso hacia el borde de Gral. Paz. A su vez, en las areas centrales podemos ver reflejado la baja densidad poblacional. 
  
 ### RUS 
 
@@ -294,9 +205,10 @@ ggplot()+
        caption = "Fuente: GCBA data")+
   theme_void()
 ```
-
+En este grafico se evidencia en los ejes principales y en barrios como Recoleta y Palermo mayor diversidad de usos.
 
 ### Terrenos 2019
+
 
 
 ```{r}
@@ -310,6 +222,8 @@ Terrenos_2019 <- st_transform(Terrenos_2019, crs=4326)
 summary(Terrenos_2019)
 ```
 
+
+AGREGAR CONCLUSION 
 ```{r}
 dim(Terrenos_2019)
 ```
@@ -350,7 +264,7 @@ hex3 <- hex2 %>%
 ```
 
 ```{r}
-hex_promedio_2019<- left_join(hex, hex3, , by="index") #union espacial con la grilla original
+hex_promedio_2019<- left_join(hex, hex3, by="index") #union espacial con la grilla original
 ```
 
 ```{r}
@@ -365,7 +279,7 @@ ggplot()+
        caption = "Fuente: GCBA data")+  
   theme_void()
 ```
-
+Se puede ver un claro gradiente de precios del Norte a Sur de la Ciudad de Buenos Aires.
 
 ### Terrenos 2020
 
@@ -437,7 +351,7 @@ ggplot()+
        caption = "Fuente: GCBA data")+  
   theme_void()
 ```
-
+En este grafico se evidencia que la gradiente de precios en periodo 2020 se mantuve en lineas generales.
 
 ### Variación porcentual interanual
 
@@ -477,7 +391,7 @@ ggplot()+
        caption = "Fuente: GCBA data")+  
   theme_void()
 ```
-
+Como conclusión podemos ver que los ejes principales y zonas aledañas la variacion de precio fue positiva, como sucedio en el Corredor Norte y Zona Oeste (como en Barrios de Saavedra y Devoto).A su vez, podemos ver que algunas zonas que identificamos con mayor densidad tambien reflejaron una variacion positiva en los precios.
 
 
 ```{r}
@@ -488,6 +402,8 @@ ggplot(hexagonos, aes(x=PROM_DENS, y=VARIACION)) +
   theme_minimal()
 ```
 
+Se evidencia una leve correlacion positiva entre la densidad y variacion de precios de lotes. Por otro lado aparente que en zonas menos densas la variabilidad fue mayor(mayor rango de variacion de precios).
+
 ```{r}
 ggplot(hexagonos, aes(x=DIVERSIDAD_USOS, y=VARIACION)) +
   geom_point()+
@@ -497,5 +413,5 @@ ggplot(hexagonos, aes(x=DIVERSIDAD_USOS, y=VARIACION)) +
   theme_minimal()
 ```
 
-
+Si bien la pendiente es positiva No podemos asegurar que haya una correlacion feaciente entre la diversidad y la variacion de precios.Pero si Notamos que hay una alta variabilidad a poca diversidad de usos.
 
