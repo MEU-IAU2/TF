@@ -226,7 +226,7 @@ ggplot()+
 __c- TERRENOS EN VENTA 2019 __
 
 
-#Vamos a cargar la información de radios censales provista por el GCABA.
+#Vamos a cargar el Dataset de Terrenos 2019.
 
 ```{r}
 Terrenos_2019 <- read_sf("data/terrenos-2019/Terrenos_venta_2019.shp") 
