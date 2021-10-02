@@ -1,7 +1,9 @@
 ---
 title: "VARIACIONES COVID-19 CABA"
-subtitle: "INSTRUMENTOS DE ANALISIS URBANOS II"
-output: html_notebook
+subtitle: INSTRUMENTOS DE ANALISIS URBANOS II
+output:
+  html_document:
+    df_print: paged
 --- 
 **TRABAJO FINAL - INSTRUMETOS DE ANALISIS URBANOS II**
  *VARIACIONES COVID-19 CABA*
@@ -31,7 +33,7 @@ library(osmdata) # Import 'OpenStreetMap' Data as Simple Features or Spatial Obj
 **2- Crearemos una grilla hexagonal para analizar las variaciones**
 
 
-#Previamente vamos a descargar los barrios de CABA.
+Previamente vamos a descargar los barrios de CABA.
 
 
 ```{r}
@@ -48,7 +50,7 @@ grid <- st_sf(index = 1:length(lengths(grid)), grid) %>%  #le agregamos un índi
 ```
 
 
-#Descargamos el polígono del límite de CABA para hacer la intersercción con la grilla.
+Descargamos el polígono del límite de CABA para hacer la intersercción con la grilla.
 
 ```{r}
 bbox_CABA_limite <- getbb("Ciudad Autónoma de Buenos Aires, Argentina", format_out = "sf_polygon")
@@ -60,7 +62,7 @@ hex <- st_intersection (bbox_CABA_limite, grid) %>%
    st_difference()
 ```
 
-#Veamos cómo se ve: 
+Veamos cómo se ve: 
 
 ```{r}
 ggplot()+
@@ -72,15 +74,15 @@ ggplot()+
   theme_void()
 ```
 
-#Esta será nuestra Unidad de Análisis a partir de ahora. 
+Esta será nuestra Unidad de Análisis a partir de ahora. 
 
 
 **3- A continuación trabajaremos: **
 
-__A- Densidad poblacional__
+__A- Densidad Poblacional__
 
 
-#Vamos a cargar la información de radios censales provista por el GCABA.
+Vamos a cargar la información de radios censales provista por el GCABA.
 
 ```{r}
 radios <- st_read("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/informacion-censal-por-radio/caba_radios_censales.geojson") %>% 
@@ -89,7 +91,7 @@ radios <- st_read("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/informa
   mutate(AREA=(as.integer(st_area(.)))*0.0001) %>% #calculamos el área y la convertimos en Ha
   mutate(DENSIDAD=(as.integer(TOTAL_POB))/AREA) #calculamos la densidad poblacional de cada radio censal (hab/Ha)
 ```
-#Veamos cómo queda sobre la grilla... en primer lugar, sólo superponiéndola: 
+Veamos cómo queda sobre la grilla... en primer lugar, sólo superponiéndola: 
 
 ```{r}
 ggplot()+
@@ -103,14 +105,14 @@ ggplot()+
   theme_void()
 ```
 
-#Ahora sí, sin sobreescribir la grilla haremos el join espacial de los centroides de los radios a la grilla (UA). 
-#Es decir, todos los centroides de los radios censales que caigan dentro del mismo hexágono, formarán parte del mismo.
+Ahora sí, sin sobreescribir la grilla haremos el join espacial de los centroides de los radios a la grilla (UA). 
+Es decir, todos los centroides de los radios censales que caigan dentro del mismo hexágono, formarán parte del mismo.
 
 ```{r}
 hex2 <- st_centroid(radios) %>% st_join(hex)
 ```
-#Hasta acá tenemos la info asociada en forma de puntos. 
-#Veámosla:
+Hasta acá tenemos la info asociada en forma de puntos. 
+Veámosla:
 
 ```{r}
 ggplot()+
@@ -124,7 +126,7 @@ ggplot()+
   theme_void()
 ```
 
-#Vamos a hacer que el hexágono tome como valor el promedio de todos los valores incolucrados.
+Vamos a hacer que el hexágono tome como valor el promedio de todos los valores incolucrados.
 
 ```{r}
 hex3 <- hex2 %>% 
@@ -164,29 +166,29 @@ ggplot()+
 
 __B- RUS __
  
-#Relevamiento de usos de suelo. 
+*Relevamiento de usos de suelo.*
 
-#Para facilitar el trabajo en equipo, este set de datos fue procesado en RUS.Rmd, dentro del mismo repositorio. 
-#Resume la cantidad de usos que regista cada parcela. 
+Para facilitar el trabajo en equipo, este set de datos fue procesado en RUS.Rmd, dentro del mismo repositorio. 
+Resume la cantidad de usos que regista cada parcela. 
  
 ```{r}
 RUS <- st_read("data/rus-procesado/RUS-grupo-geo.csv")
 ```
 
-#Ahora convertimos el set de datos de usos en datos geográfico.
+Ahora convertimos el set de datos de usos en datos geográfico.
 
 ```{r}
 RUS_geo <- RUS %>% 
   st_as_sf(coords = c("X", "Y"), crs = 4326)
 ```
 
-#Lo unimos a nuestra grilla. 
+Lo unimos a nuestra grilla. 
 
 ```{r}
 hex2 <- RUS_geo %>% st_join(hex)
 ```
 
-#Ahora sí vamos agregar los valores a los hexágonos:
+Ahora sí, vamos agregar los valores a los hexágonos:
 
 ```{r}
 hex3 <- hex2 %>% 
@@ -203,8 +205,7 @@ hex3 <- hex2 %>%
 hex_densidad_usos <- left_join(hex3, hex_densidad, by="index") #union espacial con la grilla que ya tiene la densidad
 ```
 
-
-#Veamos nuestra grilla con la diversidad de usos:
+Veamos nuestra grilla con la diversidad de usos:
 
 ```{r}
 quiebres <- c(0,0.2,0.4,0.6,0.8,1)
@@ -223,10 +224,10 @@ ggplot()+
 *En este gráfico se evidencia en los ejes principales y en barrios como Recoleta y Palermo mayor Diversidad de Usos.*
 
 
-__c- TERRENOS EN VENTA 2019 __
+__C- TERRENOS EN VENTA 2019 __
 
 
-#Vamos a cargar el Dataset de Terrenos 2019.
+Vamos a cargar el Dataset de Terrenos 2019.
 
 ```{r}
 Terrenos_2019 <- read_sf("data/terrenos-2019/Terrenos_venta_2019.shp") 
@@ -235,7 +236,7 @@ Terrenos_2019 <- st_transform(Terrenos_2019, crs=4326)
 ```
 
 
-#Ahora veamos nuestros datos.
+Ahora veamos nuestros datos.
 
 ```{r}
 summary(Terrenos_2019)
@@ -255,7 +256,7 @@ head(Terrenos_2019)
 Terrenos_2019_seleccion <- select(Terrenos_2019, LATITUD, LONGITUD, M2TOTAL, PRECIOUSD, PRECIOUSDM, BARRIOS, COMUNA, geometry) 
 ```
 
-#Uniremos nuestra seleccion del Dataset con nuestra Unidad de Análisis.
+Uniremos nuestra seleccion del Dataset con nuestra Unidad de Análisis.
 
 ```{r}
 hex2 <- Terrenos_2019_seleccion %>% st_join(hex)
@@ -270,7 +271,6 @@ hex2 <- hex2 %>%
 ```
 
 
-#Veamos como se ve graficado por Puntos.
 
 ```{r}
 ggplot()+
@@ -288,8 +288,6 @@ ggplot()+
 
 
 
-
-
 ```{r}
 hex3 <- hex2 %>% 
   group_by(index, INSTANCIAS_2019) %>% #agrupamos por ID de hexágono
@@ -303,7 +301,7 @@ hex_promedio_2019<- left_join(hex, hex3, by="index") #union espacial con la gril
 ```
 
 
-#Ahora graficaremos el valor de venta promedio por hexágonos.
+Ahora graficaremos el valor de venta promedio por hexágonos.
 
 ```{r}
 ggplot()+
@@ -322,7 +320,7 @@ ggplot()+
 
 __D- TERRENOS EN VENTA 2020 __
 
-#Vamos a cargar el Dataset de Terrenos 2020.
+Vamos a cargar el Dataset de Terrenos 2020.
 
 ```{r}
 Terrenos_2020 <- read_sf("data/terrenos-2020/210517_Terrenos_Vta_Anual2020.shp") 
@@ -336,7 +334,7 @@ Terrenos_2020 <- st_transform(Terrenos_2020, crs=4326)
 
 
 
-#Ahora veamos nuestros datos.
+Ahora veamos nuestros datos.
 
 ```{r}
 summary(Terrenos_2020)
@@ -410,7 +408,7 @@ ggplot()+
 **4- Finalmente veremos la Variación porcentual interanual**
 
 
-#Vamos a proceder a unir a través de nuestro ID de hexágono (index): 
+Vamos a proceder a unir a través de nuestro ID de hexágono (index): 
     
     - Densidades poblacionales
     - Diversidad de uso del suelo
@@ -435,7 +433,7 @@ hexagonos <- hex_densidad_usos %>%
 ```
 
 
-#Veamos como se grafica: 
+Veamos como se grafica: 
 
 ```{r}
 ggplot()+
