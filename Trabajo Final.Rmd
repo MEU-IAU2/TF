@@ -452,24 +452,39 @@ Vamos a procedes a unir a través de nuestro ID de hexágono (index):
 ```{r}
 hex_promedio_2019 <- hex_promedio_2019 %>% 
   as.data.frame() %>% 
-  select(index, USD_M2_2019, INSTANCIAS_2019)
+  select(index, USD_M2_2019, INSTANCIAS_2019) %>% 
+  filter (INSTANCIAS_2019>=umbral)
 
 hex_promedio_2020 <- hex_promedio_2020 %>% 
   as.data.frame() %>% 
-  select(index, USD_M2_2020, INSTANCIAS_2020)
+  select(index, USD_M2_2020, INSTANCIAS_2020) %>% 
+  filter (INSTANCIAS_2020>=umbral) 
   
 hexagonos <- hex_densidad_usos %>% 
   left_join(hex_promedio_2019, by="index") %>% 
   left_join(hex_promedio_2020, by="index") %>% 
-  mutate(VARIACION=USD_M2_2020/USD_M2_2019*100)
+  mutate(VARIACION=(USD_M2_2020/USD_M2_2019)-1)
 ```
+
+```{r}
+ggplot()+
+  geom_sf(data=hex, fill="grey85") +
+  geom_sf(data=hexagonos %>% filter(VARIACION>0), aes(geometry=geometry), fill="darkgreen", alpha=.5) +
+  geom_sf(data=hexagonos %>% filter(VARIACION<0), aes(geometry=geometry), fill="red", alpha=.5) +
+  scale_fill_viridis_c() +
+  labs(title = " Variación del precio promedio de \n los terrenos en venta por hexágonos",
+       subtitle = "Ciudad Autónoma de Buenos Aires, 2020",
+       caption = "Fuente: GCBA data")+  
+  theme_void()
+```
+
+
 
 ```{r}
 ggplot(hexagonos, aes(x=PROM_DENS, y=VARIACION)) +
   geom_point()+
   geom_smooth(method=lm,  linetype="dashed",
-             color="darkred", fill="blue")+
-  ylim(-50, 300)+
+             color="darkred")+
   theme_minimal()
 ```
 
@@ -477,8 +492,8 @@ ggplot(hexagonos, aes(x=PROM_DENS, y=VARIACION)) +
 ggplot(hexagonos, aes(x=DIVERSIDAD_USOS, y=VARIACION)) +
   geom_point()+
   geom_smooth(method=lm,  linetype="dashed",
-             color="darkred", fill="blue")+
-  ylim(-50, 300)+
+             color="darkred")+
+ # ylim(-50, 300)+
   theme_minimal()
 ```
 
