@@ -235,12 +235,14 @@ Terrenos_2019 <- st_transform(Terrenos_2019, crs=4326)
 ```
 
 
+#Ahora veamos nuestros datos.
+
 ```{r}
 summary(Terrenos_2019)
 ```
+*Podemos observar que la mayor cantidad de terrenos en venta se encuentran en la Comuna 15 y menor cantidad en la Comuna 1.A su vez, se puede ver que el valor Promedio USD/M2 es de 2685,89.*
 
 
-AGREGAR CONCLUSION 
 ```{r}
 dim(Terrenos_2019)
 ```
@@ -253,9 +255,12 @@ head(Terrenos_2019)
 Terrenos_2019_seleccion <- select(Terrenos_2019, LATITUD, LONGITUD, M2TOTAL, PRECIOUSD, PRECIOUSDM, BARRIOS, COMUNA, geometry) 
 ```
 
+#Uniremos nuestra seleccion del Dataset con nuestra Unidad de Análisis.
+
 ```{r}
 hex2 <- Terrenos_2019_seleccion %>% st_join(hex)
 ```
+
 
 ```{r}
 hex2 <- hex2 %>% 
@@ -264,14 +269,27 @@ hex2 <- hex2 %>%
   summarise (USD_M2_2019 = mean(PRECIOUSDM), INSTANCIAS_2019=n())
 ```
 
+
+#Veamos como se ve graficado por Puntos.
+
 ```{r}
 ggplot()+
   geom_sf(data=hex, fill="grey85") +
   geom_sf(data=hex2, aes(color=USD_M2_2019))+
   geom_sf(data=hex2 %>% filter(INSTANCIAS_2019<umbral), color="red")+
+  labs(title = "Valor promedio de los terrenos en venta por puntos",
+       subtitle = "Ciudad Autónoma de Buenos Aires, 2019",
+       fill = "USD/M2",
+       caption = "Fuente: GCBA data")+  
   scale_color_viridis_c()+
   theme_void()
 ```
+
+
+
+
+
+
 ```{r}
 hex3 <- hex2 %>% 
   group_by(index, INSTANCIAS_2019) %>% #agrupamos por ID de hexágono
@@ -284,34 +302,48 @@ hex3 <- hex2 %>%
 hex_promedio_2019<- left_join(hex, hex3, by="index") #union espacial con la grilla original
 ```
 
+
+#Ahora graficaremos el valor de venta promedio por hexágonos.
+
 ```{r}
 ggplot()+
   geom_sf(data=hex, fill="grey85") +
   geom_sf(data=hex_promedio_2019, aes(fill=USD_M2_2019, geometry=geometry)) +
   geom_sf(data=hex_promedio_2019 %>% filter(INSTANCIAS_2019<umbral), aes(geometry=geometry), color="red", alpha=.2)+
   scale_fill_viridis_c() +
-  labs(title = "Precio promedio de los terrenos en venta por hexágonos",
+  labs(title = "Valor promedio de los terrenos en venta por hexágonos",
        subtitle = "Ciudad Autónoma de Buenos Aires, 2019",
-       fill = "USD/m2",
+       fill = "USD/M2",
        caption = "Fuente: GCBA data")+  
   theme_void()
 ```
-Se puede ver un claro gradiente de precios del Norte a Sur de la Ciudad de Buenos Aires.
+*Se puede ver un claro gradiente de precios a la baja de Norte a Sur de la Ciudad de Buenos Aires*
 
-### Terrenos 2020
 
+__D- TERRENOS EN VENTA 2020 __
+
+#Vamos a cargar el Dataset de Terrenos 2020.
 
 ```{r}
 Terrenos_2020 <- read_sf("data/terrenos-2020/210517_Terrenos_Vta_Anual2020.shp") 
 ```
 
+
+
 ```{r}
 Terrenos_2020 <- st_transform(Terrenos_2020, crs=4326) 
 ```
 
+
+
+#Ahora veamos nuestros datos.
+
 ```{r}
 summary(Terrenos_2020)
 ```
+
+
+*Podemos observar que la mayor cantidad de terrenos en venta continua encontrandose en la Comuna 15 y menor cantidad en la Comuna 1.Por otro lado, se puede ver que el Promedio USD/M2 es de 2358.*
 
 
 ```{r}
@@ -340,6 +372,10 @@ ggplot()+
   geom_sf(data=hex, fill="grey85") +
   geom_sf(data=hex2, aes(color=USD_M2_2020))+
   geom_sf(data=hex2 %>% filter(INSTANCIAS_2020<umbral), color="red")+
+  labs(title = "Valor promedio de los terrenos en venta por puntos",
+       subtitle = "Ciudad Autónoma de Buenos Aires, 2020",
+       fill = "USD/M2",
+       caption = "Fuente: GCBA data")+
   scale_color_viridis_c()+
   theme_void()
 ```
@@ -362,18 +398,19 @@ ggplot()+
   geom_sf(data=hex_promedio_2020, aes(fill=USD_M2_2020, geometry=geometry)) +
   geom_sf(data=hex_promedio_2020 %>% filter(INSTANCIAS_2020<umbral), aes(geometry=geometry), color="red", alpha=.2)+
   scale_fill_viridis_c() +
-  labs(title = "Precio promedio de los terrenos en venta por hexágonos",
+  labs(title = "Valor promedio de los terrenos en venta por hexágonos",
        subtitle = "Ciudad Autónoma de Buenos Aires, 2020",
-       fill = "USD/m2",
+       fill = "USD/M2",
        caption = "Fuente: GCBA data")+  
   theme_void()
 ```
-En este grafico se evidencia que la gradiente de precios en periodo 2020 se mantuve en lineas generales.
-
-### Variación porcentual interanual
+*En el periodo 2020 se evidencia que la gradiente de precios se mantuve en lineas generales.*
 
 
-Vamos a procedes a unir a través de nuestro ID de hexágono (index): 
+**4- Finalmente veremos la Variación porcentual interanual**
+
+
+#Vamos a proceder a unir a través de nuestro ID de hexágono (index): 
     
     - Densidades poblacionales
     - Diversidad de uso del suelo
@@ -397,6 +434,9 @@ hexagonos <- hex_densidad_usos %>%
   mutate(VARIACION=(USD_M2_2020/USD_M2_2019)-1)
 ```
 
+
+#Veamos como se grafica: 
+
 ```{r}
 ggplot()+
   geom_sf(data=hex, fill="grey85") +
@@ -408,7 +448,7 @@ ggplot()+
        caption = "Fuente: GCBA data")+  
   theme_void()
 ```
-Como conclusión podemos ver que los ejes principales y zonas aledañas la variacion de precio fue positiva, como sucedio en el Corredor Norte y Zona Oeste (como en Barrios de Saavedra y Devoto).A su vez, podemos ver que algunas zonas que identificamos con mayor densidad tambien reflejaron una variacion positiva en los precios.
+*Como conclusión podemos ver que en los ejes principales y respectivas zonas aledañas, la variación de precio fue positiva como sucedio en el Corredor Norte y ciertos barrios de Zona Oeste de CABA (Saavedra y Devoto).A su vez, podemos ver que algunas zonas que identificamos con mayor densidad tambien reflejaron una variaciÓn positiva en los precios, el cual lo relacionamos por tener la zona atributos preferentes, como estar próximo a areas verdes de la Ciudad.*
 
 
 ```{r}
@@ -416,15 +456,16 @@ ggplot(hexagonos, aes(x=PROM_DENS, y=VARIACION)) +
   geom_point()+
   geom_smooth(method=lm,  linetype="dashed",
              color="darkred")+
-  labs (title = "Correlacion entre la Densidad y Variacion",
+  labs (title = "Correlación entre la Densidad y Variacion",
        subtitle = "Ciudad Autónoma de Buenos Aires, 2019-2020",
        caption ="Fuente: GCBA data", 
        x="Densidad Promedio por Hexagono",
-       y="Variacion del precio")+
+       y="Variacion de precios")+
   theme_minimal()
 ```
 
-Se evidencia una leve correlacion positiva entre la densidad y variacion de precios de lotes. Por otro lado aparente que en zonas menos densas la variabilidad fue mayor(mayor rango de variacion de precios).
+*Se evidencia una leve correlación positiva entre la densidad y variación de precios de lotes.La variación fue baja en densidades altas mientras que en tejidos residenciales con ciertos atributos ,como cercania a espacios verdes y de mayores servicios, vario a la alta de precios. Por otro lado, aparenta que en zonas menos densas como Microcentro la variabilidad fue mayor relacionado a la poca diversidad de usos (mayor rango de variación de precios).*
+
 
 ```{r}
 ggplot(hexagonos, aes(x=DIVERSIDAD_USOS, y=VARIACION)) +
@@ -439,5 +480,7 @@ ggplot(hexagonos, aes(x=DIVERSIDAD_USOS, y=VARIACION)) +
   theme_minimal()
 ```
 
-Si bien la pendiente es positiva No podemos asegurar que haya una correlacion feaciente entre la diversidad y la variacion de precios.Pero si Notamos que hay una alta variabilidad a poca diversidad de usos.
+*En nuestro último gráfico podemos llegar a la conclusion que si bien la pendiente es positiva, no podemos asegurar que haya una correlacion fehaciente entre la diversidad y la variacion de precios.Sin embargo, si notamos que hay una alta variabilidad a poca diversidad de usos.* 
+
+
 
