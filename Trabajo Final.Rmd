@@ -6,6 +6,7 @@ output:
     df_print: paged
 --- 
 **TRABAJO FINAL - INSTRUMETOS DE ANALISIS URBANOS II**
+
  *VARIACIONES COVID-19 CABA*
  
  **Profesor: Juan Pablo Ruiz Nicolini**
@@ -36,13 +37,13 @@ library(osmdata) # Import 'OpenStreetMap' Data as Simple Features or Spatial Obj
 Previamente vamos a descargar los barrios de CABA.
 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 barrios_CABA <- st_read("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/barrios/barrios.geojson") %>% 
   select() %>% 
   st_transform(crs = 4326)
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 grid <- st_make_grid(barrios_CABA, cellsize = .01, what = "polygons", square = FALSE)
 
 grid <- st_sf(index = 1:length(lengths(grid)), grid) %>%  #le agregamos un índice
@@ -52,19 +53,19 @@ grid <- st_sf(index = 1:length(lengths(grid)), grid) %>%  #le agregamos un índi
 
 Descargamos el polígono del límite de CABA para hacer la intersercción con la grilla.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 bbox_CABA_limite <- getbb("Ciudad Autónoma de Buenos Aires, Argentina", format_out = "sf_polygon")
 bbox_CABA_limite <- bbox_CABA_limite$multipolygon
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 hex <- st_intersection (bbox_CABA_limite, grid) %>% 
    st_difference()
 ```
 
 Veamos cómo se ve: 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot()+
   geom_sf(data = barrios_CABA, fill="grey85", size=.8) + 
   geom_sf(data=hex, fill=NA, color="grey45")+
@@ -73,6 +74,7 @@ ggplot()+
          caption = "Fuente: BA Data")+
   theme_void()
 ```
+
 
 Esta será nuestra Unidad de Análisis a partir de ahora. 
 
@@ -84,7 +86,7 @@ __A- Densidad Poblacional__
 
 Vamos a cargar la información de radios censales provista por el GCABA.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 radios <- st_read("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/informacion-censal-por-radio/caba_radios_censales.geojson") %>% 
   select(-WKT) %>% 
   st_transform(crs = 4326) %>% 
@@ -93,7 +95,7 @@ radios <- st_read("https://cdn.buenosaires.gob.ar/datosabiertos/datasets/informa
 ```
 Veamos cómo queda sobre la grilla... en primer lugar, sólo superponiéndola: 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot()+
   geom_sf(data=radios, aes(fill=DENSIDAD), color=NA)+
   geom_sf(data=hex, fill=NA, color="white")+
@@ -105,16 +107,18 @@ ggplot()+
   theme_void()
 ```
 
+
 Ahora sí, sin sobreescribir la grilla haremos el join espacial de los centroides de los radios a la grilla (UA). 
 Es decir, todos los centroides de los radios censales que caigan dentro del mismo hexágono, formarán parte del mismo.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 hex2 <- st_centroid(radios) %>% st_join(hex)
 ```
+
 Hasta acá tenemos la info asociada en forma de puntos. 
 Veámosla:
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot()+
   geom_sf(data=hex, fill="grey85") +
   geom_sf(data=hex2, aes(color=DENSIDAD))+
@@ -128,7 +132,7 @@ ggplot()+
 
 Vamos a hacer que el hexágono tome como valor el promedio de todos los valores incolucrados.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 hex3 <- hex2 %>% 
   group_by(index) %>% #agrupamos por ID de hexágono
   summarise(PROM_DENS=mean(DENSIDAD), INSTANCIAS=n()) %>% 
@@ -137,7 +141,7 @@ hex3 <- hex2 %>%
   select(-geometry)
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 hex_densidad <- left_join(hex3, hex, by="index") #union espacial con la grilla original
 ```
 
@@ -149,7 +153,7 @@ hex_densidad <- left_join(hex3, hex, by="index") #union espacial con la grilla o
 umbral <- 4
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot()+
   geom_sf(data=barrios_CABA, fill="grey85") +
   geom_sf(data=hex_densidad, aes(fill=PROM_DENS, geometry = geometry))+
@@ -161,6 +165,8 @@ ggplot()+
       caption = "Fuente: BA Data")+  
   theme_void()
 ```
+
+
 *En este gráfico podemos observar como crece la densidad poblacional hacia los ejes principales. Por otro lado, podemos ver un gradiente en descenso hacia el borde de Gral. Paz y en las areas centrales como baja la densidad poblacional.*
 
 
@@ -171,26 +177,26 @@ __B- RUS __
 Para facilitar el trabajo en equipo, este set de datos fue procesado en RUS.Rmd, dentro del mismo repositorio. 
 Resume la cantidad de usos que regista cada parcela. 
  
-```{r}
+```{r message=FALSE, warning=FALSE}
 RUS <- st_read("data/rus-procesado/RUS-grupo-geo.csv")
 ```
 
 Ahora convertimos el set de datos de usos en datos geográfico.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 RUS_geo <- RUS %>% 
   st_as_sf(coords = c("X", "Y"), crs = 4326)
 ```
 
 Lo unimos a nuestra grilla. 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 hex2 <- RUS_geo %>% st_join(hex)
 ```
 
 Ahora sí, vamos agregar los valores a los hexágonos:
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 hex3 <- hex2 %>% 
   as.data.frame() %>% 
   select(-geometry) %>% 
@@ -201,13 +207,13 @@ hex3 <- hex2 %>%
   #resumimos por cantidad de usos por hexágono
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 hex_densidad_usos <- left_join(hex3, hex_densidad, by="index") #union espacial con la grilla que ya tiene la densidad
 ```
 
 Veamos nuestra grilla con la diversidad de usos:
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 quiebres <- c(0,0.2,0.4,0.6,0.8,1)
 
 
@@ -221,6 +227,8 @@ ggplot()+
        caption = "Fuente: GCBA data")+
   theme_void()
 ```
+
+
 *En este gráfico se evidencia en los ejes principales y en barrios como Recoleta y Palermo mayor Diversidad de Usos.*
 
 
@@ -229,7 +237,7 @@ __C- TERRENOS EN VENTA 2019 __
 
 Vamos a cargar el Dataset de Terrenos 2019.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 Terrenos_2019 <- read_sf("data/terrenos-2019/Terrenos_venta_2019.shp") 
 
 Terrenos_2019 <- st_transform(Terrenos_2019, crs=4326) 
@@ -238,32 +246,35 @@ Terrenos_2019 <- st_transform(Terrenos_2019, crs=4326)
 
 Ahora veamos nuestros datos.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 summary(Terrenos_2019)
 ```
+
+
 *Podemos observar que la mayor cantidad de terrenos en venta se encuentran en la Comuna 15 y menor cantidad en la Comuna 1.A su vez, se puede ver que el valor Promedio USD/M2 es de 2685,89.*
 
 
 ```{r}
 dim(Terrenos_2019)
 ```
+
 ```{r}
 head(Terrenos_2019)
 ```
 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 Terrenos_2019_seleccion <- select(Terrenos_2019, LATITUD, LONGITUD, M2TOTAL, PRECIOUSD, PRECIOUSDM, BARRIOS, COMUNA, geometry) 
 ```
 
 Uniremos nuestra seleccion del Dataset con nuestra Unidad de Análisis.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 hex2 <- Terrenos_2019_seleccion %>% st_join(hex)
 ```
 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 hex2 <- hex2 %>% 
   select(PRECIOUSDM, M2TOTAL, PRECIOUSD, geometry, index) %>%
   group_by(index) %>%
@@ -272,7 +283,7 @@ hex2 <- hex2 %>%
 
 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot()+
   geom_sf(data=hex, fill="grey85") +
   geom_sf(data=hex2, aes(color=USD_M2_2019))+
@@ -288,7 +299,7 @@ ggplot()+
 
 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 hex3 <- hex2 %>% 
   group_by(index, INSTANCIAS_2019) %>% #agrupamos por ID de hexágono
   summarise(USD_M2_2019=mean(USD_M2_2019)) %>% 
@@ -296,14 +307,14 @@ hex3 <- hex2 %>%
   select(-geometry)
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 hex_promedio_2019<- left_join(hex, hex3, by="index") #union espacial con la grilla original
 ```
 
 
 Ahora graficaremos el valor de venta promedio por hexágonos.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot()+
   geom_sf(data=hex, fill="grey85") +
   geom_sf(data=hex_promedio_2019, aes(fill=USD_M2_2019, geometry=geometry)) +
@@ -315,6 +326,8 @@ ggplot()+
        caption = "Fuente: GCBA data")+  
   theme_void()
 ```
+
+
 *Se puede ver un claro gradiente de precios a la baja de Norte a Sur de la Ciudad de Buenos Aires*
 
 
@@ -322,13 +335,13 @@ __D- TERRENOS EN VENTA 2020 __
 
 Vamos a cargar el Dataset de Terrenos 2020.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 Terrenos_2020 <- read_sf("data/terrenos-2020/210517_Terrenos_Vta_Anual2020.shp") 
 ```
 
 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 Terrenos_2020 <- st_transform(Terrenos_2020, crs=4326) 
 ```
 
@@ -351,21 +364,21 @@ dim(Terrenos_2020)
 head(Terrenos_2020)
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 Terrenos_2020_seleccion <- select(Terrenos_2020, PRECIOUSD, DOLARM2, BARRIO, COMUNA_, geometry) 
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 hex2 <- Terrenos_2020_seleccion %>% st_join(hex)
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 hex2 <- select(hex2, geometry, DOLARM2, PRECIOUSD, BARRIO, COMUNA_,index)%>%
   group_by(index)%>%
   summarise (USD_M2_2020 = mean(DOLARM2), INSTANCIAS_2020=n())
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot()+
   geom_sf(data=hex, fill="grey85") +
   geom_sf(data=hex2, aes(color=USD_M2_2020))+
@@ -378,7 +391,7 @@ ggplot()+
   theme_void()
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 hex3 <- hex2 %>% 
   group_by(index, INSTANCIAS_2020) %>% #agrupamos por ID de hexágono
   summarise(USD_M2_2020=mean(USD_M2_2020)) %>% 
@@ -386,11 +399,11 @@ hex3 <- hex2 %>%
   select(-geometry)
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 hex_promedio_2020<- left_join(hex3, hex, by="index") #union espacial con la grilla original
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot()+
   geom_sf(data=hex, fill="grey85") +
   geom_sf(data=hex_promedio_2020, aes(fill=USD_M2_2020, geometry=geometry)) +
@@ -402,6 +415,8 @@ ggplot()+
        caption = "Fuente: GCBA data")+  
   theme_void()
 ```
+
+
 *En el periodo 2020 se evidencia que la gradiente de precios se mantuve en lineas generales.*
 
 
@@ -415,7 +430,7 @@ Vamos a proceder a unir a través de nuestro ID de hexágono (index):
     - USD/m2 2019 y 2020 para el cálculo de la variación interanual
     
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 hex_promedio_2019 <- hex_promedio_2019 %>% 
   as.data.frame() %>% 
   select(index, USD_M2_2019, INSTANCIAS_2019) %>% 
@@ -435,7 +450,7 @@ hexagonos <- hex_densidad_usos %>%
 
 Veamos como se grafica: 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot()+
   geom_sf(data=hex, fill="grey85") +
   geom_sf(data=hexagonos %>% filter(VARIACION>0), aes(geometry=geometry), fill="darkgreen", alpha=.5) +
@@ -446,10 +461,12 @@ ggplot()+
        caption = "Fuente: GCBA data")+  
   theme_void()
 ```
+
+
 *Como conclusión podemos ver que en los ejes principales y respectivas zonas aledañas, la variación de precio fue positiva como sucedio en el Corredor Norte y ciertos barrios de Zona Oeste de CABA (Saavedra y Devoto).A su vez, podemos ver que algunas zonas que identificamos con mayor densidad tambien reflejaron una variaciÓn positiva en los precios, el cual lo relacionamos por tener la zona atributos preferentes, como estar próximo a areas verdes de la Ciudad.*
 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot(hexagonos, aes(x=PROM_DENS, y=VARIACION)) +
   geom_point()+
   geom_smooth(method=lm,  linetype="dashed",
@@ -462,10 +479,11 @@ ggplot(hexagonos, aes(x=PROM_DENS, y=VARIACION)) +
   theme_minimal()
 ```
 
+
 *Se evidencia una leve correlación positiva entre la densidad y variación de precios de lotes.La variación fue baja en densidades altas mientras que en tejidos residenciales con ciertos atributos ,como cercania a espacios verdes y de mayores servicios, vario a la alta de precios. Por otro lado, aparenta que en zonas menos densas como Microcentro la variabilidad fue mayor relacionado a la poca diversidad de usos (mayor rango de variación de precios).*
 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot(hexagonos, aes(x=DIVERSIDAD_USOS, y=VARIACION)) +
   geom_point()+
   geom_smooth(method=lm,  linetype="dashed",
@@ -477,6 +495,7 @@ ggplot(hexagonos, aes(x=DIVERSIDAD_USOS, y=VARIACION)) +
        y="Variacion del precio")+
   theme_minimal()
 ```
+
 
 *En nuestro último gráfico podemos llegar a la conclusion que si bien la pendiente es positiva, no podemos asegurar que haya una correlacion fehaciente entre la diversidad y la variacion de precios.Sin embargo, si notamos que hay una alta variabilidad a poca diversidad de usos.* 
 
